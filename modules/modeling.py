@@ -6,6 +6,7 @@ import logging
 
 import torch
 from torch import nn
+from transformers import AlbertModel, AlbertConfig
 
 from modules.until_module import PreTrainedModel, AllGather, CrossEn
 from modules.module_cross import CrossModel, CrossConfig, Transformer as TransformerClip
@@ -16,15 +17,18 @@ from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 logger = logging.getLogger(__name__)
 allgather = AllGather.apply
 
+
 class CLIP4ClipPreTrainedModel(PreTrainedModel, nn.Module):
     """ An abstract class to handle weights initialization and
         a simple interface for dowloading and loading pretrained models.
     """
+
     def __init__(self, cross_config, *inputs, **kwargs):
         super(CLIP4ClipPreTrainedModel, self).__init__(cross_config)
         self.cross_config = cross_config
         self.clip = None
         self.cross = None
+        self.albert = None
 
     @classmethod
     def from_pretrained(cls, cross_model_name, state_dict=None, cache_dir=None, type_vocab_size=2, *inputs, **kwargs):
@@ -44,7 +48,8 @@ class CLIP4ClipPreTrainedModel(PreTrainedModel, nn.Module):
             if new_key not in state_dict:
                 state_dict[new_key] = val.clone()
 
-        cross_config, _ = CrossConfig.get_config(cross_model_name, cache_dir, type_vocab_size, state_dict=None, task_config=task_config)
+        cross_config, _ = CrossConfig.get_config(cross_model_name, cache_dir, type_vocab_size, state_dict=None,
+                                                 task_config=task_config)
 
         model = cls(cross_config, clip_state_dict, *inputs, **kwargs)
 
@@ -96,7 +101,7 @@ class CLIP4ClipPreTrainedModel(PreTrainedModel, nn.Module):
 
                         # cut from beginning
                         if num_layer < task_config.cross_num_hidden_layers:
-                            state_dict["cross."+key] = val.clone()
+                            state_dict["cross." + key] = val.clone()
                             continue
 
         if model.sim_header == "seqLSTM" or model.sim_header == "seqTransf":
@@ -123,9 +128,11 @@ class CLIP4ClipPreTrainedModel(PreTrainedModel, nn.Module):
 
         return model
 
+
 def show_log(task_config, info):
     if task_config is None or task_config.local_rank == 0:
         logger.warning(info)
+
 
 def update_attr(target_name, target_config, target_attr_name, source_config, source_attr_name, default_value=None):
     if hasattr(source_config, source_attr_name):
@@ -135,8 +142,10 @@ def update_attr(target_name, target_config, target_attr_name, source_config, sou
                                                             target_attr_name, getattr(target_config, target_attr_name)))
     return target_config
 
+
 def check_attr(target_name, task_config):
     return hasattr(task_config, target_name) and task_config.__dict__[target_name]
+
 
 class CLIP4Clip(CLIP4ClipPreTrainedModel):
     def __init__(self, cross_config, clip_state_dict, task_config):
@@ -167,7 +176,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             grid_size = round((clip_state_dict["visual.positional_embedding"].shape[0] - 1) ** 0.5)
             image_resolution = vision_patch_size * grid_size
         else:
-            counts: list = [len(set(k.split(".")[2] for k in clip_state_dict if k.startswith(f"visual.layer{b}"))) for b in
+            counts: list = [len(set(k.split(".")[2] for k in clip_state_dict if k.startswith(f"visual.layer{b}"))) for b
+                            in
                             [1, 2, 3, 4]]
             vision_layers = tuple(counts)
             vision_width = clip_state_dict["visual.layer1.0.conv1.weight"].shape[0]
@@ -181,7 +191,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         vocab_size = clip_state_dict["token_embedding.weight"].shape[0]
         transformer_width = clip_state_dict["ln_final.weight"].shape[0]
         transformer_heads = transformer_width // 64
-        transformer_layers = len(set(k.split(".")[2] for k in clip_state_dict if k.startswith(f"transformer.resblocks")))
+        transformer_layers = len(
+            set(k.split(".")[2] for k in clip_state_dict if k.startswith(f"transformer.resblocks")))
 
         show_log(task_config, "\t embed_dim: {}".format(embed_dim))
         show_log(task_config, "\t image_resolution: {}".format(image_resolution))
@@ -189,7 +200,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         show_log(task_config, "\t vision_width: {}".format(vision_width))
         show_log(task_config, "\t vision_patch_size: {}".format(vision_patch_size))
         show_log(task_config, "\t context_length: {}".format(context_length))
-        show_log(task_config, "\t vocab_size: {}".format(vocab_size))
+        show_log(task_config, "\t not used vocab_size: {}".format(vocab_size))
         show_log(task_config, "\t transformer_width: {}".format(transformer_width))
         show_log(task_config, "\t transformer_heads: {}".format(transformer_heads))
         show_log(task_config, "\t transformer_layers: {}".format(transformer_layers))
@@ -204,8 +215,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         show_log(task_config, "\t cut_top_layer: {}".format(cut_top_layer))
         self.clip = CLIP(
             embed_dim,
-            image_resolution, vision_layers-cut_top_layer, vision_width, vision_patch_size,
-            context_length, vocab_size, transformer_width, transformer_heads, transformer_layers-cut_top_layer,
+            image_resolution, vision_layers - cut_top_layer, vision_width, vision_patch_size,
+            context_length, vocab_size, transformer_width, transformer_heads, transformer_layers - cut_top_layer,
             linear_patch=self.linear_patch
         ).float()
 
@@ -216,6 +227,16 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         convert_weights(self.clip)
         # <=== End of CLIP Encoders
 
+        # albert text Encoder
+        pretrained = 'voidful/albert_chinese_base'
+        albert_config = AlbertConfig.from_pretrained(pretrained)
+        logger.info("albert_config:{}".format(albert_config))
+        # 用来对齐AlbertModel的输出维度和计算相似度的输入维度[768, 512]
+        self.albertlayer = nn.Linear(albert_config.hidden_size, transformer_width)
+
+        self.albert = AlbertModel.from_pretrained(pretrained, config=albert_config)
+        # End of albert text Encoder
+
         self.sim_header = 'meanP'
         if hasattr(task_config, "sim_header"):
             self.sim_header = task_config.sim_header
@@ -225,15 +246,18 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         cross_config.max_position_embeddings = context_length
         if self.loose_type is False:
             # Cross Encoder ===>
-            cross_config = update_attr("cross_config", cross_config, "num_hidden_layers", self.task_config, "cross_num_hidden_layers")
+            cross_config = update_attr("cross_config", cross_config, "num_hidden_layers", self.task_config,
+                                       "cross_num_hidden_layers")
             self.cross = CrossModel(cross_config)
             # <=== End of Cross Encoder
             self.similarity_dense = nn.Linear(cross_config.hidden_size, 1)
 
         if self.sim_header == "seqLSTM" or self.sim_header == "seqTransf":
-            self.frame_position_embeddings = nn.Embedding(cross_config.max_position_embeddings, cross_config.hidden_size)
+            self.frame_position_embeddings = nn.Embedding(cross_config.max_position_embeddings,
+                                                          cross_config.hidden_size)
         if self.sim_header == "seqTransf":
-            self.transformerClip = TransformerClip(width=transformer_width, layers=self.task_config.cross_num_hidden_layers,
+            self.transformerClip = TransformerClip(width=transformer_width,
+                                                   layers=self.task_config.cross_num_hidden_layers,
                                                    heads=transformer_heads, )
         if self.sim_header == "seqLSTM":
             self.lstm_visual = nn.LSTM(input_size=cross_config.hidden_size, hidden_size=cross_config.hidden_size,
@@ -256,12 +280,13 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         video_frame = bs * ts
 
         sequence_output, visual_output = self.get_sequence_visual_output(input_ids, token_type_ids, attention_mask,
-                                                                         video, video_mask, shaped=True, video_frame=video_frame)
+                                                                         video, video_mask, shaped=True,
+                                                                         video_frame=video_frame)
 
         if self.training:
             loss = 0.
             sim_matrix, *_tmp = self.get_similarity_logits(sequence_output, visual_output, attention_mask, video_mask,
-                                                    shaped=True, loose_type=self.loose_type)
+                                                           shaped=True, loose_type=self.loose_type)
             sim_loss1 = self.loss_fct(sim_matrix)
             sim_loss2 = self.loss_fct(sim_matrix.T)
             sim_loss = (sim_loss1 + sim_loss2) / 2
@@ -278,9 +303,16 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             attention_mask = attention_mask.view(-1, attention_mask.shape[-1])
 
         bs_pair = input_ids.size(0)
-        sequence_hidden = self.clip.encode_text(input_ids).float()
-        sequence_hidden = sequence_hidden.view(bs_pair, -1, sequence_hidden.size(-1))
+        if False:
+            sequence_hidden = self.clip.encode_text(input_ids).float()
+        else:
+            sequence_hidden = self.albert(input_ids)
+            sequence_hidden = sequence_hidden[1]
+            #logger.info("before sequence_hidden.shape:{}".format(sequence_hidden.shape))
+            sequence_hidden = self.albertlayer(sequence_hidden)
 
+        sequence_hidden = sequence_hidden.view(bs_pair, -1, sequence_hidden.size(-1))
+        #logger.info("after sequence_hidden1.shape:{}".format(sequence_hidden.shape))
         return sequence_hidden
 
     def get_visual_output(self, video, video_mask, shaped=False, video_frame=-1):
@@ -297,7 +329,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
 
         return visual_hidden
 
-    def get_sequence_visual_output(self, input_ids, token_type_ids, attention_mask, video, video_mask, shaped=False, video_frame=-1):
+    def get_sequence_visual_output(self, input_ids, token_type_ids, attention_mask, video, video_mask, shaped=False,
+                                   video_frame=-1):
         if shaped is False:
             input_ids = input_ids.view(-1, input_ids.shape[-1])
             token_type_ids = token_type_ids.view(-1, token_type_ids.shape[-1])
@@ -322,7 +355,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         video_type_ = torch.ones_like(video_mask)
         concat_type = torch.cat((text_type_, video_type_), dim=1)
 
-        cross_layers, pooled_output = self.cross(concat_features, concat_type, concat_mask, output_all_encoded_layers=True)
+        cross_layers, pooled_output = self.cross(concat_features, concat_type, concat_mask,
+                                                 output_all_encoded_layers=True)
         cross_output = cross_layers[-1]
 
         return cross_output, pooled_output, concat_mask
@@ -334,7 +368,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         text_out = torch.sum(sequence_output, dim=1) / torch.sum(attention_mask_un, dim=1, dtype=torch.float)
         return text_out
 
-    def _mean_pooling_for_similarity_visual(self, visual_output, video_mask,):
+    def _mean_pooling_for_similarity_visual(self, visual_output, video_mask, ):
         video_mask_un = video_mask.to(dtype=torch.float).unsqueeze(-1)
         visual_output = visual_output * video_mask_un
         video_mask_un_sum = torch.sum(video_mask_un, dim=1, dtype=torch.float)
@@ -342,7 +376,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         video_out = torch.sum(visual_output, dim=1) / video_mask_un_sum
         return video_out
 
-    def _mean_pooling_for_similarity(self, sequence_output, visual_output, attention_mask, video_mask,):
+    def _mean_pooling_for_similarity(self, sequence_output, visual_output, attention_mask, video_mask, ):
         text_out = self._mean_pooling_for_similarity_sequence(sequence_output, attention_mask)
         video_out = self._mean_pooling_for_similarity_visual(visual_output, video_mask)
 
@@ -362,7 +396,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             visual_output, _ = self.lstm_visual(visual_output)
             if self.training: self.lstm_visual.flatten_parameters()
             visual_output, _ = pad_packed_sequence(visual_output, batch_first=True)
-            visual_output = torch.cat((visual_output, visual_output_original[:, visual_output.size(1):, ...].contiguous()), dim=1)
+            visual_output = torch.cat(
+                (visual_output, visual_output_original[:, visual_output.size(1):, ...].contiguous()), dim=1)
             visual_output = visual_output + visual_output_original
         elif sim_header == "seqTransf":
             # Sequential type: Transformer Encoder
@@ -405,14 +440,14 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
 
         retrieve_logits_list = []
 
-        step_size = b_text      # set smaller to reduce memory cost
+        step_size = b_text  # set smaller to reduce memory cost
         split_size = [step_size] * (b_text // step_size)
         release_size = b_text - sum(split_size)
         if release_size > 0:
             split_size += [release_size]
 
         # due to clip text branch retrun the last hidden
-        attention_mask = torch.ones(sequence_output.size(0), 1)\
+        attention_mask = torch.ones(sequence_output.size(0), 1) \
             .to(device=attention_mask.device, dtype=attention_mask.dtype)
 
         sequence_output_splits = torch.split(sequence_output, split_size, dim=0)
@@ -440,7 +475,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         retrieve_logits = torch.cat(retrieve_logits_list, dim=0)
         return retrieve_logits
 
-    def get_similarity_logits(self, sequence_output, visual_output, attention_mask, video_mask, shaped=False, loose_type=False):
+    def get_similarity_logits(self, sequence_output, visual_output, attention_mask, video_mask, shaped=False,
+                              loose_type=False):
         if shaped is False:
             attention_mask = attention_mask.view(-1, attention_mask.shape[-1])
             video_mask = video_mask.view(-1, video_mask.shape[-1])
@@ -448,7 +484,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         contrastive_direction = ()
         if loose_type:
             assert self.sim_header in ["meanP", "seqLSTM", "seqTransf"]
-            retrieve_logits = self._loose_similarity(sequence_output, visual_output, attention_mask, video_mask, sim_header=self.sim_header)
+            retrieve_logits = self._loose_similarity(sequence_output, visual_output, attention_mask, video_mask,
+                                                     sim_header=self.sim_header)
         else:
             assert self.sim_header in ["tightTransf"]
             retrieve_logits = self._cross_similarity(sequence_output, visual_output, attention_mask, video_mask, )

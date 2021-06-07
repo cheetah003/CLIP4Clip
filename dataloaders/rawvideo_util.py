@@ -6,6 +6,9 @@ from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normal
 # pip install opencv-python
 import cv2
 
+import logging
+logger = logging.getLogger(__name__)
+
 class RawVideoExtractorCV2():
     def __init__(self, centercrop=False, size=224, framerate=-1, ):
         self.centercrop = centercrop
@@ -29,14 +32,18 @@ class RawVideoExtractorCV2():
         assert sample_fp > -1
 
         # Samples a frame sample_fp X frames.
+        #logger.info("video_file:{}".format(video_file))
+        #logger.info("sample_fp:{},start_time:{},end_time:{}".format(sample_fp, start_time, end_time))
         cap = cv2.VideoCapture(video_file)
         frameCount = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         fps = int(cap.get(cv2.CAP_PROP_FPS))
 
         total_duration = (frameCount + fps - 1) // fps
+        #logger.info("frameCount:{},fps:{},total_duration:{}".format(frameCount, fps, total_duration))
         start_sec, end_sec = 0, total_duration
 
         if start_time is not None:
+            #logger.info("cap.release()")
             start_sec, end_sec = start_time, end_time if end_time <= total_duration else total_duration
             cap.set(cv2.CAP_PROP_POS_FRAMES, int(start_time * fps))
 
@@ -53,7 +60,6 @@ class RawVideoExtractorCV2():
 
         ret = True
         images, included = [], []
-
         for sec in np.arange(start_sec, end_sec + 1):
             if not ret: break
             sec_base = int(sec * fps)
@@ -63,7 +69,7 @@ class RawVideoExtractorCV2():
                 if not ret: break
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 images.append(preprocess(Image.fromarray(frame_rgb).convert("RGB")))
-
+        #logger.info("cap.release()")
         cap.release()
 
         if len(images) > 0:

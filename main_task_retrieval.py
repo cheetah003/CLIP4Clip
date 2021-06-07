@@ -11,6 +11,7 @@ import os
 from metrics import compute_metrics, tensor_text_to_video_metrics, tensor_video_to_text_sim
 import time
 import argparse
+from transformers import BertTokenizer
 from modules.tokenization_clip import SimpleTokenizer as ClipTokenizer
 from modules.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 from modules.modeling import CLIP4Clip
@@ -397,7 +398,6 @@ def train_epoch(epoch, args, model, train_dataloader, device, n_gpu, optimizer, 
         if n_gpu == 1:
             # multi-gpu does scattering it-self
             batch = tuple(t.to(device=device, non_blocking=True) for t in batch)
-
         input_ids, input_mask, segment_ids, video, video_mask = batch
         loss = model(input_ids, segment_ids, input_mask, video, video_mask)
 
@@ -478,6 +478,7 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
         video_num_ = test_dataloader.dataset.video_num
         cut_off_points_ = [itm - 1 for itm in cut_off_points_]
 
+    logger.info("multi_sentence:{}".format(multi_sentence_))
     if multi_sentence_:
         logger.warning("Eval under the multi-sentence per video clip setting.")
         logger.warning("sentence num: {}, video num: {}".format(sentence_num_, video_num_))
@@ -495,7 +496,8 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
         for bid, batch in enumerate(test_dataloader):
             batch = tuple(t.to(device) for t in batch)
             input_ids, input_mask, segment_ids, video, video_mask = batch
-
+            #logger.info("bid:{}".format(bid))
+            #logger.info("input_ids:{}".format(input_ids))
             if multi_sentence_:
                 # multi-sentences retrieval means: one clip has two or more descriptions.
                 b, *_t = video.shape
@@ -514,7 +516,8 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
                 total_video_num += b
             else:
                 sequence_output, visual_output = model.get_sequence_visual_output(input_ids, segment_ids, input_mask, video, video_mask)
-
+                logger.info("sequence_output.shape:{}".format(sequence_output.shape))
+                logger.info("visual_output.shape:{}".format(visual_output.shape))
                 batch_sequence_output_list.append(sequence_output)
                 batch_list_t.append((input_mask, segment_ids,))
 
@@ -522,10 +525,12 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
                 batch_list_v.append((video_mask,))
 
             print("{}/{}\r".format(bid, len(test_dataloader)), end="")
-
+        logger.info("batch_sequence_output_list.shape:{}".format(np.array(batch_sequence_output_list).shape))
+        logger.info("batch_visual_output_list.shape:{}".format(np.array(batch_visual_output_list).shape))
         # ----------------------------------
         # 2. calculate the similarity
         # ----------------------------------
+        logger.info("n_gpu{}".format(n_gpu))
         if n_gpu > 1:
             device_ids = list(range(n_gpu))
             batch_list_t_splits = []
@@ -579,7 +584,7 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
         tv_metrics = tensor_text_to_video_metrics(sim_matrix)
         vt_metrics = compute_metrics(tensor_video_to_text_sim(sim_matrix))
     else:
-        logger.info("sim matrix size: {}, {}".format(sim_matrix.shape[0], sim_matrix.shape[1]))
+        logger.info("sim matrix size:  {}".format(np.array(sim_matrix).shape))
         tv_metrics = compute_metrics(sim_matrix)
         vt_metrics = compute_metrics(sim_matrix.T)
         logger.info('\t Length-T: {}, Length-V:{}'.format(len(sim_matrix), len(sim_matrix[0])))
@@ -605,8 +610,17 @@ def main():
     args = set_seed_logger(args)
     device, n_gpu = init_device(args, args.local_rank)
 
-    tokenizer = ClipTokenizer()
+    # 使用原来的tokenizer
+    if False:
+        logger.info("ClipTokenizer")
+        tokenizer = ClipTokenizer()
+    else:
+        # 使用albert的tokenizer
+        logger.info("albert的tokenizer")
+        pretrained = 'voidful/albert_chinese_base'
+        tokenizer = BertTokenizer.from_pretrained(pretrained)
 
+    logger.info("使用log打印中文")
     assert  args.task_type == "retrieval"
     model = init_model(args, device, n_gpu, args.local_rank)
 
@@ -651,7 +665,8 @@ def main():
         train_dataloader, train_length, train_sampler = DATALOADER_DICT[args.datatype]["train"](args, tokenizer)
         num_train_optimization_steps = (int(len(train_dataloader) + args.gradient_accumulation_steps - 1)
                                         / args.gradient_accumulation_steps) * args.epochs
-
+        logger.info("train_dataloader len = {}".format(len(train_dataloader)))
+        logger.info("gradient_accumulation_steps = {}".format(args.gradient_accumulation_steps))
         coef_lr = args.coef_lr
         optimizer, scheduler, model = prep_optimizer(args, model, num_train_optimization_steps, device, n_gpu, args.local_rank, coef_lr=coef_lr)
 
@@ -673,7 +688,7 @@ def main():
 
                 output_model_file = None
                 ## Uncomment if want to save checkpoint
-                # output_model_file = save_model(epoch, args, model, type_name="")
+                output_model_file = save_model(epoch, args, model, type_name="")
 
                 ## Run on val dataset, this process is *TIME-consuming*.
                 # logger.info("Eval on val dataset")

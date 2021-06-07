@@ -123,6 +123,8 @@ class SimpleTokenizer(object):
     def encode(self, text):
         bpe_tokens = []
         text = whitespace_clean(basic_clean(text)).lower()
+        # self.pat：匹配规则 text：字符串
+        # 以列表形式返回匹配到的字符串
         for token in re.findall(self.pat, text):
             token = ''.join(self.byte_encoder[b] for b in token.encode('utf-8'))
             bpe_tokens.extend(self.encoder[bpe_token] for bpe_token in self.bpe(token).split(' '))
