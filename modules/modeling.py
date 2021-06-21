@@ -6,7 +6,7 @@ import logging
 
 import torch
 from torch import nn
-from transformers import AlbertModel, AlbertConfig
+from transformers import AlbertModel, AlbertConfig, AutoConfig, AutoModel
 
 from modules.until_module import PreTrainedModel, AllGather, CrossEn
 from modules.module_cross import CrossModel, CrossConfig, Transformer as TransformerClip
@@ -42,7 +42,10 @@ class CLIP4ClipPreTrainedModel(PreTrainedModel, nn.Module):
                 task_config.local_rank = 0
 
         if state_dict is None: state_dict = {}
-        clip_state_dict = CLIP.get_config(pretrained_clip_name="ViT-B/32")
+        # clip_state_dict = CLIP.get_config(pretrained_clip_name="ViT-B/32")
+        clip_state_dict = CLIP.get_config(pretrained_clip_name="RN50")
+        # clip_state_dict = CLIP.get_config(pretrained_clip_name="RN101")
+
         for key, val in clip_state_dict.items():
             new_key = "clip." + key
             if new_key not in state_dict:
@@ -167,7 +170,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
 
         # CLIP Encoders: From OpenAI: CLIP [https://github.com/openai/CLIP] ===>
         vit = "visual.proj" in clip_state_dict
-        assert vit
+        # assert vit
         if vit:
             vision_width = clip_state_dict["visual.conv1.weight"].shape[0]
             vision_layers = len(
@@ -229,12 +232,15 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
 
         # albert text Encoder
         pretrained = 'voidful/albert_chinese_base'
-        albert_config = AlbertConfig.from_pretrained(pretrained)
+        # pretrained = "nghuyong/ernie-1.0"
+        albert_config = AutoConfig.from_pretrained(pretrained)
         logger.info("albert_config:{}".format(albert_config))
         # 用来对齐AlbertModel的输出维度和计算相似度的输入维度[768, 512]
-        self.albertlayer = nn.Linear(albert_config.hidden_size, transformer_width)
+        self.albert_layer = nn.Linear(albert_config.hidden_size, transformer_width)
 
         self.albert = AlbertModel.from_pretrained(pretrained, config=albert_config)
+        # self.albert = AlbertModel(config=albert_config)
+        # self.albert = AutoModel.from_pretrained(pretrained)
         # End of albert text Encoder
 
         self.sim_header = 'meanP'
@@ -288,9 +294,9 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             sim_matrix, *_tmp = self.get_similarity_logits(sequence_output, visual_output, attention_mask, video_mask,
                                                            shaped=True, loose_type=self.loose_type)
             sim_loss1 = self.loss_fct(sim_matrix)
-            sim_loss2 = self.loss_fct(sim_matrix.T)
-            sim_loss = (sim_loss1 + sim_loss2) / 2
-            loss += sim_loss
+            # sim_loss2 = self.loss_fct(sim_matrix.T)
+            # sim_loss = (sim_loss1 + sim_loss2) / 2
+            loss += sim_loss1
 
             return loss
         else:
@@ -304,15 +310,17 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
 
         bs_pair = input_ids.size(0)
         if False:
+            # logger.info("Clip encoder")
             sequence_hidden = self.clip.encode_text(input_ids).float()
         else:
+            # logger.info("albert encoder")
             sequence_hidden = self.albert(input_ids)
             sequence_hidden = sequence_hidden[1]
-            #logger.info("before sequence_hidden.shape:{}".format(sequence_hidden.shape))
-            sequence_hidden = self.albertlayer(sequence_hidden)
+            # logger.info("before sequence_hidden.shape:{}".format(sequence_hidden.shape))
+            sequence_hidden = self.albert_layer(sequence_hidden)
 
         sequence_hidden = sequence_hidden.view(bs_pair, -1, sequence_hidden.size(-1))
-        #logger.info("after sequence_hidden1.shape:{}".format(sequence_hidden.shape))
+        # logger.info("after sequence_hidden1.shape:{}".format(sequence_hidden.shape))
         return sequence_hidden
 
     def get_visual_output(self, video, video_mask, shaped=False, video_frame=-1):

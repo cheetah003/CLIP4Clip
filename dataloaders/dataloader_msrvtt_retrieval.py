@@ -36,6 +36,7 @@ class MSRVTT_DataLoader(Dataset):
         self.max_words = max_words
         self.max_frames = max_frames
         self.tokenizer = tokenizer
+        self.printsentence = False
         #logger.info("vocab:{}".format(self.tokenizer.vocab))
         # 0: ordinary order; 1: reverse order; 2: random order.
         self.frame_order = frame_order
@@ -46,6 +47,7 @@ class MSRVTT_DataLoader(Dataset):
 
         self.rawVideoExtractor = RawVideoExtractor(framerate=feature_framerate, size=image_resolution)
         self.SPECIAL_TOKEN = {"CLS_TOKEN": "[CLS]]", "SEP_TOKEN": "[SEP]",
+        # self.SPECIAL_TOKEN = {"CLS_TOKEN": "<|startoftext|>", "SEP_TOKEN": "<|endoftext|>",
                               "MASK_TOKEN": "[MASK]", "UNK_TOKEN": "[UNK]", "PAD_TOKEN": "[PAD]"}
 
     def __len__(self):
@@ -68,7 +70,8 @@ class MSRVTT_DataLoader(Dataset):
             if len(words) > total_length_with_CLS:
                 words = words[:total_length_with_CLS]
             words = words + [self.SPECIAL_TOKEN["SEP_TOKEN"]]
-            logger.info("words:{}".format(words))
+            if self.printsentence:
+                logger.info("words:{}".format(words))
             input_ids = self.tokenizer.convert_tokens_to_ids(words)
             input_mask = [1] * len(input_ids)
             segment_ids = [0] * len(input_ids)
@@ -83,7 +86,7 @@ class MSRVTT_DataLoader(Dataset):
             pairs_text[i] = np.array(input_ids)
             pairs_mask[i] = np.array(input_mask)
             pairs_segment[i] = np.array(segment_ids)
-            logger.info("input_ids:{}".format(input_ids))
+            # logger.info("input_ids:{}".format(input_ids))
         return pairs_text, pairs_mask, pairs_segment, choice_video_ids
 
     def _get_rawvideo(self, choice_video_ids):
@@ -136,9 +139,13 @@ class MSRVTT_DataLoader(Dataset):
     def __getitem__(self, idx):
         video_id = self.data['video_id'].values[idx]
         sentence = self.data['sentence'].values[idx]
-        logger.info("idx:{},video_id:{},sentence:{}".format(idx, video_id, sentence))
+        if idx < 5:
+            self.printsentence = True
+            logger.info("idx:{},video_id:{},sentence:{}".format(idx, video_id, sentence))
+        else:
+            self.printsentence = False
         pairs_text, pairs_mask, pairs_segment, choice_video_ids = self._get_text(video_id, sentence)
-        logger.info("choice_video_ids:{}".format(choice_video_ids))
+        # logger.info("choice_video_ids:{}".format(choice_video_ids))
         video, video_mask = self._get_rawvideo(choice_video_ids)
         return pairs_text, pairs_mask, pairs_segment, video, video_mask
 
@@ -167,6 +174,7 @@ class MSRVTT_TrainDataLoader(Dataset):
         self.max_words = max_words
         self.max_frames = max_frames
         self.tokenizer = tokenizer
+        self.printsentence = False
         # 0: ordinary order; 1: reverse order; 2: random order.
         self.frame_order = frame_order
         assert self.frame_order in [0, 1, 2]
@@ -206,8 +214,9 @@ class MSRVTT_TrainDataLoader(Dataset):
             self.sample_len = len(self.csv)
         self.rawVideoExtractor = RawVideoExtractor(framerate=feature_framerate, size=image_resolution)
         self.SPECIAL_TOKEN = {"CLS_TOKEN": "[CLS]", "SEP_TOKEN": "[SEP]",
+        # self.SPECIAL_TOKEN = {"CLS_TOKEN": "<|startoftext|>", "SEP_TOKEN": "<|endoftext|>",
                               "MASK_TOKEN": "[MASK]", "UNK_TOKEN": "[UNK]", "PAD_TOKEN": "[PAD]"}
-        logger.info("train dataloader finished!sample_len:{}".format(self.sample_len))
+        # logger.info("train dataloader finished!sample_len:{}".format(self.sample_len))
 
     def __len__(self):
         return self.sample_len
@@ -230,7 +239,8 @@ class MSRVTT_TrainDataLoader(Dataset):
             if len(words) > total_length_with_CLS:
                 words = words[:total_length_with_CLS]
             words = words + [self.SPECIAL_TOKEN["SEP_TOKEN"]]
-            #logger.info("words:{}".format(words))
+            if self.printsentence:
+                logger.info("words:{}".format(words))
             input_ids = self.tokenizer.convert_tokens_to_ids(words)
             input_mask = [1] * len(input_ids)
             segment_ids = [0] * len(input_ids)
@@ -306,7 +316,11 @@ class MSRVTT_TrainDataLoader(Dataset):
             video_id, caption = self.sentences_dict[idx]
         else:
             video_id, caption = self.csv['video_id'].values[idx], None
-        #logger.info("idx:{},video_id:{},sentence:{}".format(idx, video_id, caption))
+        if idx < 5:
+            self.printsentence = True
+            logger.info("idx:{},video_id:{},sentence:{}".format(idx, video_id, caption))
+        else:
+            self.printsentence = False
         pairs_text, pairs_mask, pairs_segment, choice_video_ids = self._get_text(video_id, caption)
         video, video_mask = self._get_rawvideo(choice_video_ids)
         return pairs_text, pairs_mask, pairs_segment, video, video_mask

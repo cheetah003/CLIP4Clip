@@ -2,16 +2,17 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
-
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '6,7'
 import torch
 from torch.utils.data import (SequentialSampler)
 import numpy as np
 import random
-import os
+
 from metrics import compute_metrics, tensor_text_to_video_metrics, tensor_video_to_text_sim
 import time
 import argparse
-from transformers import BertTokenizer
+from transformers import BertTokenizer, AutoTokenizer, AutoModel
 from modules.tokenization_clip import SimpleTokenizer as ClipTokenizer
 from modules.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 from modules.modeling import CLIP4Clip
@@ -516,17 +517,17 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
                 total_video_num += b
             else:
                 sequence_output, visual_output = model.get_sequence_visual_output(input_ids, segment_ids, input_mask, video, video_mask)
-                logger.info("sequence_output.shape:{}".format(sequence_output.shape))
-                logger.info("visual_output.shape:{}".format(visual_output.shape))
+                # logger.info("sequence_output.shape:{}".format(sequence_output.shape))
+                # logger.info("visual_output.shape:{}".format(visual_output.shape))
                 batch_sequence_output_list.append(sequence_output)
                 batch_list_t.append((input_mask, segment_ids,))
 
                 batch_visual_output_list.append(visual_output)
                 batch_list_v.append((video_mask,))
 
-            print("{}/{}\r".format(bid, len(test_dataloader)), end="")
-        logger.info("batch_sequence_output_list.shape:{}".format(np.array(batch_sequence_output_list).shape))
-        logger.info("batch_visual_output_list.shape:{}".format(np.array(batch_visual_output_list).shape))
+            logger.info("eval step:{}/{}".format(bid, len(test_dataloader)))
+        # logger.info("batch_sequence_output_list.shape:{}".format(np.array(batch_sequence_output_list).shape))
+        # logger.info("batch_visual_output_list.shape:{}".format(np.array(batch_visual_output_list).shape))
         # ----------------------------------
         # 2. calculate the similarity
         # ----------------------------------
@@ -618,10 +619,11 @@ def main():
         # 使用albert的tokenizer
         logger.info("albert的tokenizer")
         pretrained = 'voidful/albert_chinese_base'
+        # pretrained = "nghuyong/ernie-1.0"
         tokenizer = BertTokenizer.from_pretrained(pretrained)
 
     logger.info("使用log打印中文")
-    assert  args.task_type == "retrieval"
+    assert args.task_type == "retrieval"
     model = init_model(args, device, n_gpu, args.local_rank)
 
     ## ####################################
@@ -665,8 +667,8 @@ def main():
         train_dataloader, train_length, train_sampler = DATALOADER_DICT[args.datatype]["train"](args, tokenizer)
         num_train_optimization_steps = (int(len(train_dataloader) + args.gradient_accumulation_steps - 1)
                                         / args.gradient_accumulation_steps) * args.epochs
-        logger.info("train_dataloader len = {}".format(len(train_dataloader)))
-        logger.info("gradient_accumulation_steps = {}".format(args.gradient_accumulation_steps))
+        # logger.info("train_dataloader len = {}".format(len(train_dataloader)))
+        # logger.info("gradient_accumulation_steps = {}".format(args.gradient_accumulation_steps))
         coef_lr = args.coef_lr
         optimizer, scheduler, model = prep_optimizer(args, model, num_train_optimization_steps, device, n_gpu, args.local_rank, coef_lr=coef_lr)
 

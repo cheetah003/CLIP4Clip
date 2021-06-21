@@ -14,6 +14,8 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+import logging
+logger = logging.getLogger(__name__)
 
 _MODELS = {
     "RN50": "https://openaipublic.azureedge.net/clip/models/afeb0e10f9e5a86da6080e35cf09123aca3b358a0c3e3b6c78a7b63bc04b6762/RN50.pt",
@@ -402,6 +404,7 @@ class CLIP(nn.Module):
 
     @staticmethod
     def get_config(pretrained_clip_name="ViT-B/32"):
+        logger.info("pretrained_clip_name:{}".format(pretrained_clip_name))
         model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ViT-B-32.pt")
         if pretrained_clip_name == "ViT-B/32" and os.path.exists(model_path):
             pass
