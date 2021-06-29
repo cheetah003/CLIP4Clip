@@ -46,7 +46,7 @@ class MSRVTT_DataLoader(Dataset):
         assert self.slice_framepos in [0, 1, 2]
 
         self.rawVideoExtractor = RawVideoExtractor(framerate=feature_framerate, size=image_resolution)
-        self.SPECIAL_TOKEN = {"CLS_TOKEN": "[CLS]]", "SEP_TOKEN": "[SEP]",
+        self.SPECIAL_TOKEN = {"CLS_TOKEN": "[CLS]", "SEP_TOKEN": "[SEP]",
         # self.SPECIAL_TOKEN = {"CLS_TOKEN": "<|startoftext|>", "SEP_TOKEN": "<|endoftext|>",
                               "MASK_TOKEN": "[MASK]", "UNK_TOKEN": "[UNK]", "PAD_TOKEN": "[PAD]"}
 

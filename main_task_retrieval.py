@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '4,5,6,7'
 import torch
 from torch.utils.data import (SequentialSampler)
 import numpy as np
@@ -394,8 +394,10 @@ def train_epoch(epoch, args, model, train_dataloader, device, n_gpu, optimizer, 
     log_step = args.n_display
     start_time = time.time()
     total_loss = 0
-
+    load_start_time = time.time()
     for step, batch in enumerate(train_dataloader):
+        load_finish_time = time.time()
+        logger.info("data loader time:{}".format(load_finish_time - load_start_time))
         if n_gpu == 1:
             # multi-gpu does scattering it-self
             batch = tuple(t.to(device=device, non_blocking=True) for t in batch)
@@ -408,7 +410,8 @@ def train_epoch(epoch, args, model, train_dataloader, device, n_gpu, optimizer, 
             loss = loss / args.gradient_accumulation_steps
 
         loss.backward()
-
+        forward_and_backward_time = time.time()
+        logger.info("forward_and_backward_time :{}".format(forward_and_backward_time - load_finish_time))
         total_loss += float(loss)
         if (step + 1) % args.gradient_accumulation_steps == 0:
 
@@ -434,7 +437,7 @@ def train_epoch(epoch, args, model, train_dataloader, device, n_gpu, optimizer, 
                             float(loss),
                             (time.time() - start_time) / (log_step * args.gradient_accumulation_steps))
                 start_time = time.time()
-
+        load_start_time = time.time()
     total_loss = total_loss / len(train_dataloader)
     return total_loss, global_step
 
@@ -611,15 +614,17 @@ def main():
     args = set_seed_logger(args)
     device, n_gpu = init_device(args, args.local_rank)
 
-    # 使用原来的tokenizer
     if False:
+        # 使用原来的tokenizer
         logger.info("ClipTokenizer")
         tokenizer = ClipTokenizer()
     else:
         # 使用albert的tokenizer
-        logger.info("albert的tokenizer")
-        pretrained = 'voidful/albert_chinese_base'
+        # pretrained = 'voidful/albert_chinese_base'
+        # pretrained = 'hfl/chinese-roberta-wwm-ext'
+        pretrained = 'hfl/chinese-roberta-wwm-ext-large'
         # pretrained = "nghuyong/ernie-1.0"
+        logger.info("tokenizer:{}".format(pretrained))
         tokenizer = BertTokenizer.from_pretrained(pretrained)
 
     logger.info("使用log打印中文")
@@ -690,7 +695,7 @@ def main():
 
                 output_model_file = None
                 ## Uncomment if want to save checkpoint
-                output_model_file = save_model(epoch, args, model, type_name="")
+                # output_model_file = save_model(epoch, args, model, type_name="")
 
                 ## Run on val dataset, this process is *TIME-consuming*.
                 # logger.info("Eval on val dataset")

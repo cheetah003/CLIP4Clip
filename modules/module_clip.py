@@ -337,6 +337,7 @@ class CLIP(nn.Module):
 
         if isinstance(vision_layers, (tuple, list)):
             vision_heads = vision_width * 32 // 64
+            self.visualtype = 'ResNet'
             self.visual = ModifiedResNet(
                 layers=vision_layers,
                 output_dim=embed_dim,
@@ -345,6 +346,7 @@ class CLIP(nn.Module):
                 width=vision_width
             )
         else:
+            self.visualtype = 'ViT'
             vision_heads = vision_width // 64
             self.visual = VisualTransformer(
                 input_resolution=image_resolution,
@@ -438,11 +440,13 @@ class CLIP(nn.Module):
         return self.visual.conv1.weight.dtype
 
     def encode_image(self, image, return_hidden=False, video_frame=-1):
-        hidden = self.visual(image.type(self.dtype), video_frame=video_frame)
-        hidden = self.visual.ln_post(hidden) @ self.visual.proj
-
-        x = hidden[:, 0, :]
-
+        if self.visualtype == 'ViT':
+            hidden = self.visual(image.type(self.dtype), video_frame=video_frame)
+            hidden = self.visual.ln_post(hidden) @ self.visual.proj
+            x = hidden[:, 0, :]
+        else:
+            hidden = self.visual(image.type(self.dtype))
+            x = hidden
         if return_hidden:
             return x, hidden
 
@@ -458,7 +462,6 @@ class CLIP(nn.Module):
         x = x.permute(1, 0, 2)  # LND -> NLD
 
         hidden = self.ln_final(x).type(self.dtype) @ self.text_projection
-
         # x.shape = [batch_size, n_ctx, transformer.width]
         # take features from the eot embedding (eot_token is the highest number in each sequence)
         x = hidden[torch.arange(hidden.shape[0]), text.argmax(dim=-1)]

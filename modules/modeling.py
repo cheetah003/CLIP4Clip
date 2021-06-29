@@ -168,6 +168,16 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             self.loose_type = True
             show_log(task_config, "Test retrieval by loose type.")
 
+        # albert text Encoder
+        # pretrained = 'voidful/albert_chinese_base'
+        # pretrained = 'hfl/chinese-roberta-wwm-ext'
+        pretrained = 'hfl/chinese-roberta-wwm-ext-large'
+        # pretrained = "nghuyong/ernie-1.0"
+        my_config = AutoConfig.from_pretrained(pretrained)
+        logger.info("albert_config:{}".format(my_config))
+        self.albert = AutoModel.from_pretrained(pretrained)
+        # End of albert text Encoder
+
         # CLIP Encoders: From OpenAI: CLIP [https://github.com/openai/CLIP] ===>
         vit = "visual.proj" in clip_state_dict
         # assert vit
@@ -191,7 +201,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
 
         embed_dim = clip_state_dict["text_projection"].shape[1]
         context_length = clip_state_dict["positional_embedding"].shape[0]
-        vocab_size = clip_state_dict["token_embedding.weight"].shape[0]
+        # vocab_size = clip_state_dict["token_embedding.weight"].shape[0]
+        vocab_size = my_config.vocab_size
         transformer_width = clip_state_dict["ln_final.weight"].shape[0]
         transformer_heads = transformer_width // 64
         transformer_layers = len(
@@ -218,7 +229,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         show_log(task_config, "\t cut_top_layer: {}".format(cut_top_layer))
         self.clip = CLIP(
             embed_dim,
-            image_resolution, vision_layers - cut_top_layer, vision_width, vision_patch_size,
+            # image_resolution, vision_layers - cut_top_layer, vision_width, vision_patch_size,
+            image_resolution, vision_layers, vision_width, vision_patch_size,
             context_length, vocab_size, transformer_width, transformer_heads, transformer_layers - cut_top_layer,
             linear_patch=self.linear_patch
         ).float()
@@ -229,19 +241,6 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
 
         convert_weights(self.clip)
         # <=== End of CLIP Encoders
-
-        # albert text Encoder
-        pretrained = 'voidful/albert_chinese_base'
-        # pretrained = "nghuyong/ernie-1.0"
-        albert_config = AutoConfig.from_pretrained(pretrained)
-        logger.info("albert_config:{}".format(albert_config))
-        # 用来对齐AlbertModel的输出维度和计算相似度的输入维度[768, 512]
-        self.albert_layer = nn.Linear(albert_config.hidden_size, transformer_width)
-
-        self.albert = AlbertModel.from_pretrained(pretrained, config=albert_config)
-        # self.albert = AlbertModel(config=albert_config)
-        # self.albert = AutoModel.from_pretrained(pretrained)
-        # End of albert text Encoder
 
         self.sim_header = 'meanP'
         if hasattr(task_config, "sim_header"):
@@ -288,15 +287,16 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         sequence_output, visual_output = self.get_sequence_visual_output(input_ids, token_type_ids, attention_mask,
                                                                          video, video_mask, shaped=True,
                                                                          video_frame=video_frame)
-
+        logger.info("sequence_output.shape:{}".format(sequence_output.shape))
+        logger.info("visual_output.shape:{}".format(visual_output.shape))
         if self.training:
             loss = 0.
             sim_matrix, *_tmp = self.get_similarity_logits(sequence_output, visual_output, attention_mask, video_mask,
                                                            shaped=True, loose_type=self.loose_type)
             sim_loss1 = self.loss_fct(sim_matrix)
-            # sim_loss2 = self.loss_fct(sim_matrix.T)
-            # sim_loss = (sim_loss1 + sim_loss2) / 2
-            loss += sim_loss1
+            sim_loss2 = self.loss_fct(sim_matrix.T)
+            sim_loss = (sim_loss1 + sim_loss2) / 2
+            loss += sim_loss
 
             return loss
         else:
@@ -317,7 +317,6 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             sequence_hidden = self.albert(input_ids)
             sequence_hidden = sequence_hidden[1]
             # logger.info("before sequence_hidden.shape:{}".format(sequence_hidden.shape))
-            sequence_hidden = self.albert_layer(sequence_hidden)
 
         sequence_hidden = sequence_hidden.view(bs_pair, -1, sequence_hidden.size(-1))
         # logger.info("after sequence_hidden1.shape:{}".format(sequence_hidden.shape))
@@ -334,7 +333,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         bs_pair = video_mask.size(0)
         visual_hidden = self.clip.encode_image(video, video_frame=video_frame).float()
         visual_hidden = visual_hidden.view(bs_pair, -1, visual_hidden.size(-1))
-
+        # logger.info("visual_hidden.shape:{}".format(visual_hidden.shape))
         return visual_hidden
 
     def get_sequence_visual_output(self, input_ids, token_type_ids, attention_mask, video, video_mask, shaped=False,

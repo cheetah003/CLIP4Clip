@@ -5,6 +5,7 @@ from PIL import Image
 from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize
 # pip install opencv-python
 import cv2
+import time
 
 import logging
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ class RawVideoExtractorCV2():
             assert isinstance(start_time, int) and isinstance(end_time, int) \
                    and start_time > -1 and end_time > start_time
         assert sample_fp > -1
-
+        # time1 = time.time()
         # Samples a frame sample_fp X frames.
         #logger.info("video_file:{}".format(video_file))
         #logger.info("sample_fp:{},start_time:{},end_time:{}".format(sample_fp, start_time, end_time))
@@ -76,6 +77,8 @@ class RawVideoExtractorCV2():
             video_data = th.tensor(np.stack(images))
         else:
             video_data = th.zeros(1)
+        # time2 = time.time()
+        # logger.info("cost time:{}".format(time2 - time1))
         return {'video': video_data}
 
     def get_video_data(self, video_path, start_time=None, end_time=None):
