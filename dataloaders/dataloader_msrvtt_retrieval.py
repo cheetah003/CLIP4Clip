@@ -12,6 +12,7 @@ from collections import defaultdict
 import json
 import random
 from dataloaders.rawvideo_util import RawVideoExtractor
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +97,7 @@ class MSRVTT_DataLoader(Dataset):
         # Pair x L x T x 3 x H x W
         video = np.zeros((len(choice_video_ids), self.max_frames, 1, 3,
                           self.rawVideoExtractor.size, self.rawVideoExtractor.size), dtype=np.float)
-
+        # logger.info("video.shape:{}".format(video.shape))
         for i, video_id in enumerate(choice_video_ids):
             # Individual for YoucokII dataset, due to it video format
             video_path = os.path.join(self.features_path, "{}.mp4".format(video_id))
@@ -104,6 +105,7 @@ class MSRVTT_DataLoader(Dataset):
                 video_path = video_path.replace(".mp4", ".webm")
             raw_video_data = self.rawVideoExtractor.get_video_data(video_path)
             raw_video_data = raw_video_data['video']
+            # logger.info("raw_video_data.shape:{}".format(raw_video_data.shape))
             if len(raw_video_data.shape) > 3:
                 raw_video_data_clip = raw_video_data
                 # L x T x 3 x H x W
@@ -123,6 +125,7 @@ class MSRVTT_DataLoader(Dataset):
                 video_slice = self.rawVideoExtractor.process_frame_order(video_slice, frame_order=self.frame_order)
 
                 slice_len = video_slice.shape[0]
+                # logger.info("slice_len:{}".format(slice_len))
                 max_video_length[i] = max_video_length[i] if max_video_length[i] > slice_len else slice_len
                 if slice_len < 1:
                     pass
@@ -147,6 +150,8 @@ class MSRVTT_DataLoader(Dataset):
         pairs_text, pairs_mask, pairs_segment, choice_video_ids = self._get_text(video_id, sentence)
         # logger.info("choice_video_ids:{}".format(choice_video_ids))
         video, video_mask = self._get_rawvideo(choice_video_ids)
+        # logger.info("pairs_text:{}".format(pairs_text))
+        # logger.info("video:{}".format(video.reshape(-1)))
         return pairs_text, pairs_mask, pairs_segment, video, video_mask
 
 
@@ -271,7 +276,8 @@ class MSRVTT_TrainDataLoader(Dataset):
         # Pair x L x T x 3 x H x W
         video = np.zeros((len(choice_video_ids), self.max_frames, 1, 3,
                           self.rawVideoExtractor.size, self.rawVideoExtractor.size), dtype=np.float)
-
+        # logger.info("video.shape:{}".format(video.shape))
+        # logger.info("choice_video_ids:{}".format(choice_video_ids))
         for i, video_id in enumerate(choice_video_ids):
             # Individual for YoucokII dataset, due to it video format
             video_path = os.path.join(self.features_path, "{}.mp4".format(video_id))
@@ -280,6 +286,7 @@ class MSRVTT_TrainDataLoader(Dataset):
 
             raw_video_data = self.rawVideoExtractor.get_video_data(video_path)
             raw_video_data = raw_video_data['video']
+            # logger.info("raw_video_data.shape:{}".format(raw_video_data.shape))
             if len(raw_video_data.shape) > 3:
                 raw_video_data_clip = raw_video_data
                 # L x T x 3 x H x W
@@ -298,6 +305,7 @@ class MSRVTT_TrainDataLoader(Dataset):
                 video_slice = self.rawVideoExtractor.process_frame_order(video_slice, frame_order=self.frame_order)
 
                 slice_len = video_slice.shape[0]
+                # logger.info("video_slice.shape:{}".format(video_slice.shape))
                 max_video_length[i] = max_video_length[i] if max_video_length[i] > slice_len else slice_len
                 if slice_len < 1:
                     pass
@@ -323,4 +331,18 @@ class MSRVTT_TrainDataLoader(Dataset):
             self.printsentence = False
         pairs_text, pairs_mask, pairs_segment, choice_video_ids = self._get_text(video_id, caption)
         video, video_mask = self._get_rawvideo(choice_video_ids)
+        # logger.info("pairs_text.shape:{},size:{},type:{},dtype:{}".format(pairs_text.shape, sys.getsizeof(pairs_text),
+        #                                                              type(pairs_text), pairs_text.dtype))
+        # logger.info("pairs_mask.shape:{},size:{},type:{},dtype:{},data:{}".format(pairs_mask.shape,
+        #                                                                 sys.getsizeof(pairs_mask),
+        #                                                                 type(pairs_mask), pairs_mask.dtype, pairs_mask))
+        # logger.info("pairs_segment.shape:{},size:{},type:{},dtype:{},data:{}".format(pairs_segment.shape,
+        #                                                             sys.getsizeof(pairs_segment),
+        #                                                     type(pairs_segment), pairs_segment.dtype,pairs_segment))
+        # logger.info("video.shape:{},size:{},type:{},dtype:{}".format(video.shape, sys.getsizeof(video),
+        #                                                              type(video), video.dtype))
+        # logger.info("video_mask.shape:{},size:{},type:{},dtype:{},data:{}".format(video_mask.shape,
+        #                                                                           sys.getsizeof(video_mask),
+        #                                                              type(video_mask), video_mask.dtype,video_mask))
+
         return pairs_text, pairs_mask, pairs_segment, video, video_mask

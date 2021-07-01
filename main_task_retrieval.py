@@ -20,6 +20,7 @@ from modules.optimization import BertAdam
 from torch.utils.data import DataLoader
 from util import parallel_apply, get_logger
 from dataloaders.dataloader_msrvtt_retrieval import MSRVTT_DataLoader
+from dataloaders.mydataloader import BasicLMDB
 from dataloaders.dataloader_msrvtt_retrieval import MSRVTT_TrainDataLoader
 from dataloaders.dataloader_msvd_retrieval import MSVD_DataLoader
 from dataloaders.dataloader_lsmdc_retrieval import LSMDC_DataLoader
@@ -219,19 +220,21 @@ def prep_optimizer(args, model, num_train_optimization_steps, device, n_gpu, loc
     return optimizer, scheduler, model
 
 def dataloader_msrvtt_train(args, tokenizer):
-    msrvtt_dataset = MSRVTT_TrainDataLoader(
-        csv_path=args.train_csv,
-        json_path=args.data_path,
-        features_path=args.features_path,
-        max_words=args.max_words,
-        feature_framerate=args.feature_framerate,
-        tokenizer=tokenizer,
-        max_frames=args.max_frames,
-        unfold_sentences=args.expand_msrvtt_sentences,
-        frame_order=args.train_frame_order,
-        slice_framepos=args.slice_framepos,
-    )
-
+    # msrvtt_dataset = MSRVTT_TrainDataLoader(
+    #     csv_path=args.train_csv,
+    #     json_path=args.data_path,
+    #     features_path=args.features_path,
+    #     max_words=args.max_words,
+    #     feature_framerate=args.feature_framerate,
+    #     tokenizer=tokenizer,
+    #     max_frames=args.max_frames,
+    #     unfold_sentences=args.expand_msrvtt_sentences,
+    #     frame_order=args.train_frame_order,
+    #     slice_framepos=args.slice_framepos,
+    # )
+    #train_database数据还未准备好,暂时注释掉
+    # msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/train_database', tokenizer = tokenizer)
+    msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database', tokenizer=tokenizer)
     train_sampler = torch.utils.data.distributed.DistributedSampler(msrvtt_dataset)
     dataloader = DataLoader(
         msrvtt_dataset,
@@ -246,16 +249,17 @@ def dataloader_msrvtt_train(args, tokenizer):
     return dataloader, len(msrvtt_dataset), train_sampler
 
 def dataloader_msrvtt_test(args, tokenizer):
-    msrvtt_testset = MSRVTT_DataLoader(
-        csv_path=args.val_csv,
-        features_path=args.features_path,
-        max_words=args.max_words,
-        feature_framerate=args.feature_framerate,
-        tokenizer=tokenizer,
-        max_frames=args.max_frames,
-        frame_order=args.eval_frame_order,
-        slice_framepos=args.slice_framepos,
-    )
+    # msrvtt_testset = MSRVTT_DataLoader(
+    #     csv_path=args.val_csv,
+    #     features_path=args.features_path,
+    #     max_words=args.max_words,
+    #     feature_framerate=args.feature_framerate,
+    #     tokenizer=tokenizer,
+    #     max_frames=args.max_frames,
+    #     frame_order=args.eval_frame_order,
+    #     slice_framepos=args.slice_framepos,
+    # )
+    msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database', tokenizer=tokenizer)
     dataloader_msrvtt = DataLoader(
         msrvtt_testset,
         batch_size=args.batch_size_val,
@@ -528,7 +532,7 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
                 batch_visual_output_list.append(visual_output)
                 batch_list_v.append((video_mask,))
 
-            logger.info("eval step:{}/{}".format(bid, len(test_dataloader)))
+            # logger.info("eval step:{}/{}".format(bid, len(test_dataloader)))
         # logger.info("batch_sequence_output_list.shape:{}".format(np.array(batch_sequence_output_list).shape))
         # logger.info("batch_visual_output_list.shape:{}".format(np.array(batch_visual_output_list).shape))
         # ----------------------------------
