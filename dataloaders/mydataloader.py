@@ -88,12 +88,12 @@ class BasicLMDB(VisionDataset):
         video = self._txn.get(video_key)
         video_data = np.frombuffer(video)
         # video.shape: (1, 12, 1, 3, 224, 224)
-        # video_data.dtype = 'float32'
+        video_data.dtype = 'float32'
         caption = self._txn.get(caption_key).tobytes().decode('utf-8')
         # print("data:{}".format(video_data))
         # print("caption:{}".format(caption))
         video_data = video_data.copy()
-        # video_data = video_data.astype('float64')
+        video_data = video_data.astype('float64')
         video_data = video_data.reshape([-1, self.max_frames, 1, 3, 224, 224])
         # print("video:{},shape:{},type:{},dtype:{}".format(sys.getsizeof(video_data), video_data.shape, type(video_data),
         #                                                   video_data.dtype))
