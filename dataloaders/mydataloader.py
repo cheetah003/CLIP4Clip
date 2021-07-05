@@ -12,14 +12,14 @@ from transformers import BertTokenizer
 
 
 class BasicLMDB(VisionDataset):
-    def __init__(self, root: str, maxTxns: int = 1, tokenizer=None, transform: Optional[Callable] = None,
+    def __init__(self, root: str, maxTxns: int = 1, tokenizer=None, max_words=32, transform: Optional[Callable] = None,
                  is_valid_file: Optional[Callable[[str], bool]] = None) -> None:
         super().__init__(root, transform=transform)
         self._maxTxns = maxTxns
         # env and txn is delay-loaded in ddp. They can't pickle
         self._env = None
         self._txn = None
-        self.max_words = 32
+        self.max_words = max_words
         self.max_frames = 12
         if tokenizer is None:
             self.tokenizer = BertTokenizer.from_pretrained('hfl/chinese-roberta-wwm-ext-large')

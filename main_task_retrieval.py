@@ -233,8 +233,10 @@ def dataloader_msrvtt_train(args, tokenizer):
     #     slice_framepos=args.slice_framepos,
     # )
     #train_database数据还未准备好,暂时注释掉
-    # msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/train_database', tokenizer = tokenizer)
-    msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database', tokenizer=tokenizer)
+    # msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/train_database',
+    #                            tokenizer=tokenizer, max_words=args.max_words)
+    msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database',
+                               tokenizer=tokenizer, max_words=args.max_words)
     train_sampler = torch.utils.data.distributed.DistributedSampler(msrvtt_dataset)
     dataloader = DataLoader(
         msrvtt_dataset,
@@ -259,7 +261,8 @@ def dataloader_msrvtt_test(args, tokenizer):
     #     frame_order=args.eval_frame_order,
     #     slice_framepos=args.slice_framepos,
     # )
-    msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database', tokenizer=tokenizer)
+    msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/test_database',
+                               tokenizer=tokenizer, max_words=args.max_words)
     dataloader_msrvtt = DataLoader(
         msrvtt_testset,
         batch_size=args.batch_size_val,
