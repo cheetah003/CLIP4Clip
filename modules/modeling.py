@@ -43,8 +43,8 @@ class CLIP4ClipPreTrainedModel(PreTrainedModel, nn.Module):
 
         if state_dict is None: state_dict = {}
         # clip_state_dict = CLIP.get_config(pretrained_clip_name="ViT-B/32")
-        clip_state_dict = CLIP.get_config(pretrained_clip_name="RN50")
-        # clip_state_dict = CLIP.get_config(pretrained_clip_name="RN101")
+        # clip_state_dict = CLIP.get_config(pretrained_clip_name="RN50")
+        clip_state_dict = CLIP.get_config(pretrained_clip_name="RN101")
 
         for key, val in clip_state_dict.items():
             new_key = "clip." + key
@@ -174,8 +174,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         pretrained = 'hfl/chinese-roberta-wwm-ext-large'
         # pretrained = "nghuyong/ernie-1.0"
         my_config = AutoConfig.from_pretrained(pretrained)
-        logger.info("albert_config:{}".format(my_config))
-        self.albert = AutoModel.from_pretrained(pretrained)
+        logger.info("chinesebert_config:{}".format(my_config))
+        self.chinese_bert = AutoModel.from_pretrained(pretrained)
         # End of albert text Encoder
 
         # CLIP Encoders: From OpenAI: CLIP [https://github.com/openai/CLIP] ===>
@@ -199,11 +199,13 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             assert output_width ** 2 + 1 == clip_state_dict["visual.attnpool.positional_embedding"].shape[0]
             image_resolution = output_width * 32
 
-        embed_dim = clip_state_dict["text_projection"].shape[1]
+        # embed_dim = clip_state_dict["text_projection"].shape[1]
+        embed_dim = my_config.hidden_size
         context_length = clip_state_dict["positional_embedding"].shape[0]
         vocab_size = clip_state_dict["token_embedding.weight"].shape[0]
         # vocab_size = my_config.vocab_size
-        transformer_width = clip_state_dict["ln_final.weight"].shape[0]
+        # transformer_width = clip_state_dict["ln_final.weight"].shape[0]
+        transformer_width = my_config.hidden_size
         transformer_heads = transformer_width // 64
         transformer_layers = len(
             set(k.split(".")[2] for k in clip_state_dict if k.startswith(f"transformer.resblocks")))
@@ -287,8 +289,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         sequence_output, visual_output = self.get_sequence_visual_output(input_ids, token_type_ids, attention_mask,
                                                                          video, video_mask, shaped=True,
                                                                          video_frame=video_frame)
-        logger.info("sequence_output.shape:{}".format(sequence_output.shape))
-        logger.info("visual_output.shape:{}".format(visual_output.shape))
+        # logger.info("sequence_output.shape:{}".format(sequence_output.shape))
+        # logger.info("visual_output.shape:{}".format(visual_output.shape))
         if self.training:
             loss = 0.
             sim_matrix, *_tmp = self.get_similarity_logits(sequence_output, visual_output, attention_mask, video_mask,
@@ -314,7 +316,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             sequence_hidden = self.clip.encode_text(input_ids).float()
         else:
             # logger.info("albert encoder")
-            sequence_hidden = self.albert(input_ids)
+            sequence_hidden = self.chinese_bert(input_ids)
             sequence_hidden = sequence_hidden[1]
             # logger.info("before sequence_hidden.shape:{}".format(sequence_hidden.shape))
 

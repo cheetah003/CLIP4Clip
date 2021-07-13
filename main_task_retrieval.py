@@ -41,6 +41,7 @@ def get_args(description='CLIP4Clip on Retrieval Task'):
 
     parser.add_argument('--num_thread_reader', type=int, default=1, help='')
     parser.add_argument('--lr', type=float, default=0.0001, help='initial learning rate')
+    parser.add_argument('--chinese_lr', type=float, default=0.00001, help='chinese learning rate')
     parser.add_argument('--epochs', type=int, default=20, help='upper epoch limit')
     parser.add_argument('--batch_size', type=int, default=256, help='batch size')
     parser.add_argument('--batch_size_val', type=int, default=3500, help='batch size eval')
@@ -195,16 +196,20 @@ def prep_optimizer(args, model, num_train_optimization_steps, device, n_gpu, loc
     no_decay_param_tp = [(n, p) for n, p in param_optimizer if any(nd in n for nd in no_decay)]
 
     decay_clip_param_tp = [(n, p) for n, p in decay_param_tp if "clip." in n]
-    decay_noclip_param_tp = [(n, p) for n, p in decay_param_tp if "clip." not in n]
+    decay_chinesebert_param_tp = [(n, p) for n, p in decay_param_tp if "chinese_bert." in n]
+    decay_noclip_param_tp = [(n, p) for n, p in decay_param_tp if ("clip." not in n) and ("chinese_bert." not in n)]
 
     no_decay_clip_param_tp = [(n, p) for n, p in no_decay_param_tp if "clip." in n]
-    no_decay_noclip_param_tp = [(n, p) for n, p in no_decay_param_tp if "clip." not in n]
+    no_decay_chinesebert_param_tp = [(n, p) for n, p in no_decay_param_tp if "chinese_bert." in n]
+    no_decay_noclip_param_tp = [(n, p) for n, p in no_decay_param_tp if ("clip." not in n) and ("chinese_bert." not in n)]
 
     weight_decay = 0.2
     optimizer_grouped_parameters = [
         {'params': [p for n, p in decay_clip_param_tp], 'weight_decay': weight_decay, 'lr': args.lr * coef_lr},
+        {'params': [p for n, p in decay_chinesebert_param_tp], 'weight_decay': weight_decay, 'lr': args.chinese_lr},
         {'params': [p for n, p in decay_noclip_param_tp], 'weight_decay': weight_decay},
         {'params': [p for n, p in no_decay_clip_param_tp], 'weight_decay': 0.0, 'lr': args.lr * coef_lr},
+        {'params': [p for n, p in no_decay_chinesebert_param_tp], 'weight_decay': 0.0, 'lr': args.chinese_lr},
         {'params': [p for n, p in no_decay_noclip_param_tp], 'weight_decay': 0.0}
     ]
 
@@ -232,17 +237,16 @@ def dataloader_msrvtt_train(args, tokenizer):
     #     frame_order=args.train_frame_order,
     #     slice_framepos=args.slice_framepos,
     # )
-    #train_database数据还未准备好,暂时注释掉
-    # msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/train_database',
-    #                            tokenizer=tokenizer, max_words=args.max_words)
-    msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database',
-                               tokenizer=tokenizer, max_words=args.max_words)
+    msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/train_database',
+                               tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
+    # msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database24',
+    #                            tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     train_sampler = torch.utils.data.distributed.DistributedSampler(msrvtt_dataset)
     dataloader = DataLoader(
         msrvtt_dataset,
         batch_size=args.batch_size // args.n_gpu,
         num_workers=args.num_thread_reader,
-        pin_memory=False,
+        pin_memory=True,
         shuffle=(train_sampler is None),
         sampler=train_sampler,
         drop_last=True,
@@ -261,8 +265,10 @@ def dataloader_msrvtt_test(args, tokenizer):
     #     frame_order=args.eval_frame_order,
     #     slice_framepos=args.slice_framepos,
     # )
-    msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/test_database',
-                               tokenizer=tokenizer, max_words=args.max_words)
+    msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database',
+                               tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
+    # msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/test_database24',
+    #                            tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     dataloader_msrvtt = DataLoader(
         msrvtt_testset,
         batch_size=args.batch_size_val,
@@ -637,7 +643,6 @@ def main():
     logger.info("使用log打印中文")
     assert args.task_type == "retrieval"
     model = init_model(args, device, n_gpu, args.local_rank)
-
     ## ####################################
     # freeze testing
     ## ####################################
@@ -683,7 +688,6 @@ def main():
         # logger.info("gradient_accumulation_steps = {}".format(args.gradient_accumulation_steps))
         coef_lr = args.coef_lr
         optimizer, scheduler, model = prep_optimizer(args, model, num_train_optimization_steps, device, n_gpu, args.local_rank, coef_lr=coef_lr)
-
         if args.local_rank == 0:
             logger.info("***** Running training *****")
             logger.info("  Num examples = %d", train_length)
@@ -699,20 +703,20 @@ def main():
                                                scheduler, global_step, local_rank=args.local_rank)
             if args.local_rank == 0:
                 logger.info("Epoch %d/%s Finished, Train Loss: %f", epoch + 1, args.epochs, tr_loss)
+                if epoch % 10 == 0:
+                    output_model_file = None
+                    ## Uncomment if want to save checkpoint
+                    # output_model_file = save_model(epoch, args, model, type_name="")
 
-                output_model_file = None
-                ## Uncomment if want to save checkpoint
-                # output_model_file = save_model(epoch, args, model, type_name="")
+                    ## Run on val dataset, this process is *TIME-consuming*.
+                    # logger.info("Eval on val dataset")
+                    # R1 = eval_epoch(args, model, val_dataloader, device, n_gpu)
 
-                ## Run on val dataset, this process is *TIME-consuming*.
-                # logger.info("Eval on val dataset")
-                # R1 = eval_epoch(args, model, val_dataloader, device, n_gpu)
-
-                R1 = eval_epoch(args, model, test_dataloader, device, n_gpu)
-                if best_score <= R1:
-                    best_score = R1
-                    best_output_model_file = output_model_file
-                logger.info("The best model is: {}, the R1 is: {:.4f}".format(best_output_model_file, best_score))
+                    R1 = eval_epoch(args, model, test_dataloader, device, n_gpu)
+                    if best_score <= R1:
+                        best_score = R1
+                        best_output_model_file = output_model_file
+                    logger.info("The best model is: {}, the R1 is: {:.4f}".format(best_output_model_file, best_score))
 
         ## Uncomment if want to test on the best checkpoint
         # if args.local_rank == 0:
