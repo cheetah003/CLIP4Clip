@@ -237,10 +237,12 @@ def dataloader_msrvtt_train(args, tokenizer):
     #     frame_order=args.train_frame_order,
     #     slice_framepos=args.slice_framepos,
     # )
-    msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/train_database',
-                               tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
-    # msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database24',
+    # msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/train_database24_16',
+    #                            jsonpath='/home/shenwenxue/data/datasets/bird/train_data.json',
     #                            tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
+    msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database24',
+                               jsonpath='/home/shenwenxue/data/datasets/bird/val_data.json',
+                               tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     train_sampler = torch.utils.data.distributed.DistributedSampler(msrvtt_dataset)
     dataloader = DataLoader(
         msrvtt_dataset,
@@ -265,10 +267,12 @@ def dataloader_msrvtt_test(args, tokenizer):
     #     frame_order=args.eval_frame_order,
     #     slice_framepos=args.slice_framepos,
     # )
-    msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database',
-                               tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
-    # msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/test_database24',
+    # msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database24_16',
+    #                            jsonpath='/home/shenwenxue/data/datasets/bird/val_data.json',
     #                            tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
+    msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/test_database24',
+                               jsonpath='/home/shenwenxue/data/datasets/bird/test_data.json',
+                               tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     dataloader_msrvtt = DataLoader(
         msrvtt_testset,
         batch_size=args.batch_size_val,

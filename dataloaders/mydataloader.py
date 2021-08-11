@@ -11,8 +11,17 @@ from torch.utils.data import DataLoader, Dataset
 from transformers import BertTokenizer
 
 
+def read_json_line(path):
+    with open(path, 'r', encoding='utf8') as f:
+        lines = f.readlines()
+        data = []
+        for line in lines:
+            item = json.loads(line)
+            data.append(item)
+    return data
+
 class BasicLMDB(VisionDataset):
-    def __init__(self, root: str, maxTxns: int = 1, tokenizer=None, max_words=32, max_frames=12, transform: Optional[Callable] = None,
+    def __init__(self, root: str, jsonpath:str, maxTxns: int = 1, tokenizer=None, max_words=32, max_frames=12, transform: Optional[Callable] = None,
                  is_valid_file: Optional[Callable[[str], bool]] = None) -> None:
         super().__init__(root, transform=transform)
         self._maxTxns = maxTxns
@@ -30,6 +39,7 @@ class BasicLMDB(VisionDataset):
         with open(os.path.join(root, "metadata.json"), "r") as fp:
             metadata = json.load(fp)
         self._length = metadata["length"]
+        self.datalist = read_json_line(jsonpath)
         self.SPECIAL_TOKEN = {"CLS_TOKEN": "[CLS]", "SEP_TOKEN": "[SEP]",
                               "MASK_TOKEN": "[MASK]", "UNK_TOKEN": "[UNK]", "PAD_TOKEN": "[PAD]"}
 
@@ -81,15 +91,14 @@ class BasicLMDB(VisionDataset):
         """
         if self._env is None:
             self._initEnv()
-        video_key = "video" + str(index)
+        item = self.datalist[index]
+        video_key = item['video_id']
         video_key = video_key.encode()
-        caption_key = "caption" + str(index)
-        caption_key = caption_key.encode()
         video = self._txn.get(video_key)
         video_data = np.frombuffer(video)
         # video.shape: (1, 12, 1, 3, 224, 224)
-        video_data.dtype = 'float32'
-        caption = self._txn.get(caption_key).tobytes().decode('utf-8')
+        video_data.dtype = 'float16'
+
         # print("data:{}".format(video_data))
         # print("caption:{}".format(caption))
         video_data = video_data.copy()
@@ -98,7 +107,7 @@ class BasicLMDB(VisionDataset):
         # print("video:{},shape:{},type:{},dtype:{}".format(sys.getsizeof(video_data), video_data.shape, type(video_data),
         #                                                   video_data.dtype))
 
-
+        caption = item['title']
         pairs_text, pairs_mask, pairs_segment = self._get_text(caption)
         video_mask = np.ones(self.max_frames, dtype=np.long)
         return pairs_text, pairs_mask, pairs_segment, video_data, video_mask
