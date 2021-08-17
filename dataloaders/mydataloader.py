@@ -21,13 +21,15 @@ def read_json_line(path):
     return data
 
 class BasicLMDB(VisionDataset):
-    def __init__(self, root: str, jsonpath:str, maxTxns: int = 1, tokenizer=None, max_words=32, max_frames=12, transform: Optional[Callable] = None,
+    def __init__(self, root: str, jsonpath:str, maxTxns: int = 1, tokenizer=None,
+                 resolution=224, max_words=32, max_frames=12, transform: Optional[Callable] = None,
                  is_valid_file: Optional[Callable[[str], bool]] = None) -> None:
         super().__init__(root, transform=transform)
         self._maxTxns = maxTxns
         # env and txn is delay-loaded in ddp. They can't pickle
         self._env = None
         self._txn = None
+        self.resolution = resolution
         self.max_words = max_words
         self.max_frames = max_frames
         if tokenizer is None:
@@ -103,7 +105,7 @@ class BasicLMDB(VisionDataset):
         # print("caption:{}".format(caption))
         video_data = video_data.copy()
         video_data = video_data.astype('float64')
-        video_data = video_data.reshape([-1, self.max_frames, 1, 3, 224, 224])
+        video_data = video_data.reshape([-1, self.max_frames, 1, 3, self.resolution, self.resolution])
         # print("video:{},shape:{},type:{},dtype:{}".format(sys.getsizeof(video_data), video_data.shape, type(video_data),
         #                                                   video_data.dtype))
 
