@@ -38,10 +38,11 @@ class BasicLMDB(VisionDataset):
             self.tokenizer = tokenizer
         # Length is needed for DistributedSampler, but we can't use env to get it, env can't pickle.
         # So we decide to read from metadata placed in the same folder --- see src/misc/datasetCreate.py
-        with open(os.path.join(root, "metadata.json"), "r") as fp:
-            metadata = json.load(fp)
-        self._length = metadata["length"]
+        # with open(os.path.join(root, "metadata.json"), "r") as fp:
+        #     metadata = json.load(fp)
+        # self._length = metadata["length"]
         self.datalist = read_json_line(jsonpath)
+        self._length = len(self.datalist)
         self.SPECIAL_TOKEN = {"CLS_TOKEN": "[CLS]", "SEP_TOKEN": "[SEP]",
                               "MASK_TOKEN": "[MASK]", "UNK_TOKEN": "[UNK]", "PAD_TOKEN": "[PAD]"}
 

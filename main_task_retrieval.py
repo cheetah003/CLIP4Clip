@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '4,5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '6,7'
 import torch
 from torch.utils.data import (SequentialSampler)
 import numpy as np
@@ -240,8 +240,8 @@ def dataloader_msrvtt_train(args, tokenizer):
     # msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/train_database24_16',
     #                            jsonpath='/home/shenwenxue/data/datasets/bird/train_data.json',
     #                            tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
-    msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database24',
-                               jsonpath='/home/shenwenxue/data/datasets/bird/val_data.json',
+    msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/video_asr_lmdb_array',
+                               jsonpath='/home/shenwenxue/data/datasets/bird/train_data_ocr.json',
                                tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     train_sampler = torch.utils.data.distributed.DistributedSampler(msrvtt_dataset)
     dataloader = DataLoader(
@@ -270,8 +270,8 @@ def dataloader_msrvtt_test(args, tokenizer):
     # msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database24_16',
     #                            jsonpath='/home/shenwenxue/data/datasets/bird/val_data.json',
     #                            tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
-    msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/test_database24',
-                               jsonpath='/home/shenwenxue/data/datasets/bird/test_data.json',
+    msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/video_asr_lmdb_array',
+                               jsonpath='/home/shenwenxue/data/datasets/bird/val_data_ocr.json',
                                tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     dataloader_msrvtt = DataLoader(
         msrvtt_testset,
@@ -638,13 +638,12 @@ def main():
     else:
         # 使用albert的tokenizer
         # pretrained = 'voidful/albert_chinese_base'
-        # pretrained = 'hfl/chinese-roberta-wwm-ext'
-        pretrained = 'hfl/chinese-roberta-wwm-ext-large'
+        pretrained = 'hfl/chinese-roberta-wwm-ext'
+        # pretrained = 'hfl/chinese-roberta-wwm-ext-large'
         # pretrained = "nghuyong/ernie-1.0"
         logger.info("tokenizer:{}".format(pretrained))
         tokenizer = BertTokenizer.from_pretrained(pretrained)
 
-    logger.info("使用log打印中文")
     assert args.task_type == "retrieval"
     model = init_model(args, device, n_gpu, args.local_rank)
     ## ####################################

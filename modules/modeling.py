@@ -28,7 +28,7 @@ class CLIP4ClipPreTrainedModel(PreTrainedModel, nn.Module):
         self.cross_config = cross_config
         self.clip = None
         self.cross = None
-        self.albert = None
+        self.chinese_bert = None
 
     @classmethod
     def from_pretrained(cls, cross_model_name, state_dict=None, cache_dir=None, type_vocab_size=2, *inputs, **kwargs):
@@ -43,8 +43,8 @@ class CLIP4ClipPreTrainedModel(PreTrainedModel, nn.Module):
 
         if state_dict is None: state_dict = {}
         # clip_state_dict = CLIP.get_config(pretrained_clip_name="ViT-B/32")
-        # clip_state_dict = CLIP.get_config(pretrained_clip_name="RN50")
-        clip_state_dict = CLIP.get_config(pretrained_clip_name="RN101")
+        clip_state_dict = CLIP.get_config(pretrained_clip_name="RN50")
+        # clip_state_dict = CLIP.get_config(pretrained_clip_name="RN101")
 
         for key, val in clip_state_dict.items():
             new_key = "clip." + key
@@ -174,7 +174,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         pretrained = 'hfl/chinese-roberta-wwm-ext-large'
         # pretrained = "nghuyong/ernie-1.0"
         my_config = AutoConfig.from_pretrained(pretrained)
-        logger.info("chinesebert_config:{}".format(my_config))
+        logger.info("name:{},chinesebert_config:{}".format(pretrained,my_config))
         self.chinese_bert = AutoModel.from_pretrained(pretrained)
         # End of albert text Encoder
 
@@ -204,8 +204,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         context_length = clip_state_dict["positional_embedding"].shape[0]
         vocab_size = clip_state_dict["token_embedding.weight"].shape[0]
         # vocab_size = my_config.vocab_size
-        # transformer_width = clip_state_dict["ln_final.weight"].shape[0]
-        transformer_width = my_config.hidden_size
+        transformer_width = clip_state_dict["ln_final.weight"].shape[0]
+        # transformer_width = my_config.hidden_size
         transformer_heads = transformer_width // 64
         transformer_layers = len(
             set(k.split(".")[2] for k in clip_state_dict if k.startswith(f"transformer.resblocks")))
@@ -316,9 +316,11 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             sequence_hidden = self.clip.encode_text(input_ids).float()
         else:
             # logger.info("albert encoder")
+            # logger.info("input_ids.shape:{}".format(input_ids.shape))
             sequence_hidden = self.chinese_bert(input_ids)
-            sequence_hidden = sequence_hidden[1]
             # logger.info("before sequence_hidden.shape:{}".format(sequence_hidden.shape))
+            sequence_hidden = sequence_hidden[1]
+
 
         sequence_hidden = sequence_hidden.view(bs_pair, -1, sequence_hidden.size(-1))
         # logger.info("after sequence_hidden1.shape:{}".format(sequence_hidden.shape))
@@ -430,6 +432,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             sequence_output = allgather(sequence_output, self.task_config)
             torch.distributed.barrier()
 
+        # logger.info("allgather sequence_output.shape:{}".format(sequence_output.shape))
+        # logger.info("allgather visual_output.shape:{}".format(visual_output.shape))
         visual_output = visual_output / visual_output.norm(dim=-1, keepdim=True)
         visual_output = self._mean_pooling_for_similarity_visual(visual_output, video_mask)
         visual_output = visual_output / visual_output.norm(dim=-1, keepdim=True)
