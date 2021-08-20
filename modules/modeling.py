@@ -274,11 +274,13 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
 
         self.apply(self.init_weights)
 
-    def forward(self, input_ids, token_type_ids, attention_mask, video, video_mask=None):
+    def forward(self, input_ids, token_type_ids, attention_mask, ocr_ids, title_ids, video, video_mask=None):
         input_ids = input_ids.view(-1, input_ids.shape[-1])
         token_type_ids = token_type_ids.view(-1, token_type_ids.shape[-1])
         attention_mask = attention_mask.view(-1, attention_mask.shape[-1])
         video_mask = video_mask.view(-1, video_mask.shape[-1])
+        ocr_ids = ocr_ids.view(-1, ocr_ids.shape[-1])
+        title_ids = title_ids.view(-1, title_ids.shape[-1])
 
         # T x 3 x H x W
         video = torch.as_tensor(video).float()
@@ -289,15 +291,25 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         sequence_output, visual_output = self.get_sequence_visual_output(input_ids, token_type_ids, attention_mask,
                                                                          video, video_mask, shaped=True,
                                                                          video_frame=video_frame)
+        ocr_output = self.get_sequence_output(ocr_ids, token_type_ids, attention_mask, shaped=True)
+        title_output = self.get_sequence_output(title_ids, token_type_ids, attention_mask, shaped=True)
         # logger.info("sequence_output.shape:{}".format(sequence_output.shape))
         # logger.info("visual_output.shape:{}".format(visual_output.shape))
         if self.training:
             loss = 0.
             sim_matrix, *_tmp = self.get_similarity_logits(sequence_output, visual_output, attention_mask, video_mask,
                                                            shaped=True, loose_type=self.loose_type)
+            sim_matrix_ocr = self.loose_similarity_for_text(sequence_output, ocr_output)
+            sim_matrix_title = self.loose_similarity_for_text(sequence_output, title_output)
+
+            # logger.info("sim_matrix.shape:{}".format(sim_matrix.shape))
             sim_loss1 = self.loss_fct(sim_matrix)
-            sim_loss2 = self.loss_fct(sim_matrix.T)
-            sim_loss = (sim_loss1 + sim_loss2) / 2
+            # sim_loss2 = self.loss_fct(sim_matrix.T)
+            sim_loss_ocr = self.loss_fct(sim_matrix_ocr)
+            sim_loss_title = self.loss_fct(sim_matrix_title)
+            logger.info("sim_loss1:{},sim_loss_ocr:{},sim_loss_title:{}".format(sim_loss1, sim_loss_ocr, sim_loss_title))
+            sim_loss = sim_loss1 + sim_loss_ocr + sim_loss_title
+
             loss += sim_loss
 
             return loss
@@ -393,6 +405,27 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
 
         return text_out, video_out
 
+    def loose_similarity_for_text(self, query_text, input_text):
+        query_text = query_text.contiguous()
+        input_text = input_text.contiguous()
+
+        if self.training:
+            input_text = allgather(input_text, self.task_config)
+            query_text = allgather(query_text, self.task_config)
+            torch.distributed.barrier()
+
+        input_text = input_text.squeeze(1)
+        input_text = input_text / input_text.norm(dim=-1, keepdim=True)
+
+        query_text = query_text.squeeze(1)
+        query_text = query_text / query_text.norm(dim=-1, keepdim=True)
+
+        logit_scale = self.clip.logit_scale.exp()
+        # logger.info("logit_scale_text:{}".format(logit_scale))
+        retrieve_logits = logit_scale * torch.matmul(query_text, input_text.t())
+        # logger.info("retrieve_logits.shape:{}".format(retrieve_logits.shape))
+        return retrieve_logits
+
     def _loose_similarity(self, sequence_output, visual_output, attention_mask, video_mask, sim_header="meanP"):
         sequence_output, visual_output = sequence_output.contiguous(), visual_output.contiguous()
 
@@ -432,8 +465,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             sequence_output = allgather(sequence_output, self.task_config)
             torch.distributed.barrier()
 
-        # logger.info("allgather sequence_output.shape:{}".format(sequence_output.shape))
-        # logger.info("allgather visual_output.shape:{}".format(visual_output.shape))
+
         visual_output = visual_output / visual_output.norm(dim=-1, keepdim=True)
         visual_output = self._mean_pooling_for_similarity_visual(visual_output, video_mask)
         visual_output = visual_output / visual_output.norm(dim=-1, keepdim=True)
@@ -441,8 +473,12 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         sequence_output = sequence_output.squeeze(1)
         sequence_output = sequence_output / sequence_output.norm(dim=-1, keepdim=True)
 
+        # logger.info("allgather sequence_output.shape:{}".format(sequence_output.shape))
+        # logger.info("allgather visual_output.shape:{}".format(visual_output.shape))
         logit_scale = self.clip.logit_scale.exp()
+        # logger.info("logit_scale:{}".format(logit_scale))
         retrieve_logits = logit_scale * torch.matmul(sequence_output, visual_output.t())
+        # logger.info("retrieve_logits.shape:{}".format(retrieve_logits.shape))
         return retrieve_logits
 
     def _cross_similarity(self, sequence_output, visual_output, attention_mask, video_mask):

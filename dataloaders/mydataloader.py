@@ -110,10 +110,17 @@ class BasicLMDB(VisionDataset):
         # print("video:{},shape:{},type:{},dtype:{}".format(sys.getsizeof(video_data), video_data.shape, type(video_data),
         #                                                   video_data.dtype))
 
-        caption = item['title']
-        pairs_text, pairs_mask, pairs_segment = self._get_text(caption)
+        # caption = item['title']
+        tag_text = item['tag']
+        ocr_text = item['ocr']
+        title_text = item['title']
+        tag_ids, tag_mask, tag_segment = self._get_text(tag_text)
+        # ocr_ids, ocr_mask, ocr_segment = self._get_text(ocr_text)
+        ocr_ids, _, _ = self._get_text(ocr_text)
+        # title_ids, title_mask, title_segment = self._get_text(title_text)
+        title_ids, _, _ = self._get_text(title_text)
         video_mask = np.ones(self.max_frames, dtype=np.long)
-        return pairs_text, pairs_mask, pairs_segment, video_data, video_mask
+        return tag_ids, tag_mask, tag_segment, video_data, video_mask, ocr_ids, title_ids
 
     def __len__(self) -> int:
         return self._length
