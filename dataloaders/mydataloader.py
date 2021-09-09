@@ -109,14 +109,17 @@ class BasicLMDB(VisionDataset):
         video_data = video_data.reshape([-1, self.max_frames, 1, 3, self.resolution, self.resolution])
         # print("video:{},shape:{},type:{},dtype:{}".format(sys.getsizeof(video_data), video_data.shape, type(video_data),
         #                                                   video_data.dtype))
-
+        ########### not used ocr ###############
+        ocr_ids = [0] * self.max_words
+        ocr_ids = np.array(ocr_ids)
+        ######################################
         # caption = item['title']
         tag_text = item['tag']
-        ocr_text = item['ocr']
+        # ocr_text = item['ocr']
         title_text = item['title']
         tag_ids, tag_mask, tag_segment = self._get_text(tag_text)
         # ocr_ids, ocr_mask, ocr_segment = self._get_text(ocr_text)
-        ocr_ids, _, _ = self._get_text(ocr_text)
+        # ocr_ids, _, _ = self._get_text(ocr_text)
         # title_ids, title_mask, title_segment = self._get_text(title_text)
         title_ids, _, _ = self._get_text(title_text)
         video_mask = np.ones(self.max_frames, dtype=np.long)

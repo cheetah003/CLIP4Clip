@@ -668,7 +668,8 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
             sim_matrix = np.concatenate(tuple(sim_matrix), axis=0)
             sim_matrix_ocr = np.concatenate(tuple(sim_matrix_ocr), axis=0)
             sim_matrix_title = np.concatenate(tuple(sim_matrix_title), axis=0)
-            sim_matrix = sim_matrix + sim_matrix_ocr + sim_matrix_title
+            # sim_matrix = sim_matrix + sim_matrix_ocr + sim_matrix_title
+            sim_matrix = sim_matrix + sim_matrix_title
         else:
             sim_matrix_tuple = _run_on_single_gpu(model, batch_list_t, batch_list_v,
                                                   batch_sequence_output_list, batch_visual_output_list,
@@ -677,8 +678,8 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
             sim_matrix = np.concatenate(tuple(sim_matrix), axis=0)
             sim_matrix_ocr = np.concatenate(tuple(sim_matrix_ocr), axis=0)
             sim_matrix_title = np.concatenate(tuple(sim_matrix_title), axis=0)
-
-            sim_matrix = sim_matrix + sim_matrix_ocr + sim_matrix_title
+            # sim_matrix = sim_matrix + sim_matrix_ocr + sim_matrix_title
+            sim_matrix = sim_matrix + sim_matrix_title
     if multi_sentence_:
         logger.info("before reshape, sim matrix size: {} x {}".format(sim_matrix.shape[0], sim_matrix.shape[1]))
         cut_off_points2len_ = [itm + 1 for itm in cut_off_points_]

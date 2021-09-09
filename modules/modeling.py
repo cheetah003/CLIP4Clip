@@ -43,8 +43,8 @@ class CLIP4ClipPreTrainedModel(PreTrainedModel, nn.Module):
 
         if state_dict is None: state_dict = {}
         # clip_state_dict = CLIP.get_config(pretrained_clip_name="ViT-B/32")
-        clip_state_dict = CLIP.get_config(pretrained_clip_name="RN50")
-        # clip_state_dict = CLIP.get_config(pretrained_clip_name="RN101")
+        # clip_state_dict = CLIP.get_config(pretrained_clip_name="RN50")
+        clip_state_dict = CLIP.get_config(pretrained_clip_name="RN101")
 
         for key, val in clip_state_dict.items():
             new_key = "clip." + key
@@ -170,8 +170,8 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
 
         # albert text Encoder
         # pretrained = 'voidful/albert_chinese_base'
-        # pretrained = 'hfl/chinese-roberta-wwm-ext'
-        pretrained = 'hfl/chinese-roberta-wwm-ext-large'
+        pretrained = 'hfl/chinese-roberta-wwm-ext'
+        # pretrained = 'hfl/chinese-roberta-wwm-ext-large'
         # pretrained = "nghuyong/ernie-1.0"
         my_config = AutoConfig.from_pretrained(pretrained)
         logger.info("name:{},chinesebert_config:{}".format(pretrained,my_config))
@@ -279,7 +279,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         token_type_ids = token_type_ids.view(-1, token_type_ids.shape[-1])
         attention_mask = attention_mask.view(-1, attention_mask.shape[-1])
         video_mask = video_mask.view(-1, video_mask.shape[-1])
-        ocr_ids = ocr_ids.view(-1, ocr_ids.shape[-1])
+        # ocr_ids = ocr_ids.view(-1, ocr_ids.shape[-1])
         title_ids = title_ids.view(-1, title_ids.shape[-1])
 
         # T x 3 x H x W
@@ -291,7 +291,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
         sequence_output, visual_output = self.get_sequence_visual_output(input_ids, token_type_ids, attention_mask,
                                                                          video, video_mask, shaped=True,
                                                                          video_frame=video_frame)
-        ocr_output = self.get_sequence_output(ocr_ids, token_type_ids, attention_mask, shaped=True)
+        # ocr_output = self.get_sequence_output(ocr_ids, token_type_ids, attention_mask, shaped=True)
         title_output = self.get_sequence_output(title_ids, token_type_ids, attention_mask, shaped=True)
         # logger.info("sequence_output.shape:{}".format(sequence_output.shape))
         # logger.info("visual_output.shape:{}".format(visual_output.shape))
@@ -299,17 +299,17 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             loss = 0.
             sim_matrix, *_tmp = self.get_similarity_logits(sequence_output, visual_output, attention_mask, video_mask,
                                                            shaped=True, loose_type=self.loose_type)
-            sim_matrix_ocr = self.loose_similarity_for_text(sequence_output, ocr_output)
+            # sim_matrix_ocr = self.loose_similarity_for_text(sequence_output, ocr_output)
             sim_matrix_title = self.loose_similarity_for_text(sequence_output, title_output)
 
             # logger.info("sim_matrix.shape:{}".format(sim_matrix.shape))
             sim_loss1 = self.loss_fct(sim_matrix)
             # sim_loss2 = self.loss_fct(sim_matrix.T)
-            sim_loss_ocr = self.loss_fct(sim_matrix_ocr)
+            # sim_loss_ocr = self.loss_fct(sim_matrix_ocr)
             sim_loss_title = self.loss_fct(sim_matrix_title)
-            logger.info("sim_loss1:{},sim_loss_ocr:{},sim_loss_title:{}".format(sim_loss1, sim_loss_ocr, sim_loss_title))
-            sim_loss = sim_loss1 + sim_loss_ocr + sim_loss_title
-
+            logger.info("sim_loss1:{},sim_loss_title:{}".format(sim_loss1, sim_loss_title))
+            # sim_loss = sim_loss1 + sim_loss_ocr + sim_loss_title
+            sim_loss = sim_loss1 + sim_loss_title
             loss += sim_loss
 
             return loss
