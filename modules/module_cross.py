@@ -136,6 +136,8 @@ class CrossEmbeddings(nn.Module):
         super(CrossEmbeddings, self).__init__()
 
         self.position_embeddings = nn.Embedding(config.max_position_embeddings, config.hidden_size)
+        # logger.info("config.max_position_embeddings:{}".format(config.max_position_embeddings))
+        # logger.info("config.hidden_size:{}".format(config.hidden_size))
         # self.token_type_embeddings = nn.Embedding(config.type_vocab_size, config.hidden_size)
         # self.LayerNorm = LayerNorm(config.hidden_size, eps=1e-12)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
@@ -150,8 +152,10 @@ class CrossEmbeddings(nn.Module):
         position_ids = position_ids.unsqueeze(0).expand(concat_embeddings.size(0), -1)
 
         # token_type_embeddings = self.token_type_embeddings(concat_type)
+        # logger.info("position_ids.shape:{}".format(position_ids.shape))
         position_embeddings = self.position_embeddings(position_ids)
-
+        # logger.info("concat_embeddings.shape:{}".format(concat_embeddings.shape))
+        # logger.info("position_embeddings.shape:{}".format(position_embeddings.shape))
         embeddings = concat_embeddings + position_embeddings # + token_type_embeddings
         # embeddings = self.LayerNorm(embeddings)
         embeddings = self.dropout(embeddings)

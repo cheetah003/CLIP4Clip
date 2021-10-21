@@ -3,6 +3,7 @@ import torch.nn as nn
 import threading
 from torch._utils import ExceptionWrapper
 import logging
+import torch.nn.functional as F
 
 def get_a_var(obj):
     if isinstance(obj, torch.Tensor):
@@ -17,6 +18,7 @@ def get_a_var(obj):
             if isinstance(result, torch.Tensor):
                 return result
     return None
+
 
 def parallel_apply(fct, model, inputs, device_ids):
     modules = nn.parallel.replicate(model, device_ids)

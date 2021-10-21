@@ -35,6 +35,18 @@ def gelu(x):
 def swish(x):
     return x * torch.sigmoid(x)
 
+def get_dual_matrix(sim_matrix):
+    if torch.is_tensor(sim_matrix):
+        pass
+    else:
+        sim_matrix = torch.tensor(sim_matrix)
+    temp = 1
+    # sim_matrix = sim_matrix * F.softmax(sim_matrix / temp, dim=0) * len(sim_matrix)
+    alpha = F.softmax(sim_matrix / temp, dim=0)
+    sim_matrix = sim_matrix * alpha
+    return sim_matrix
+
+
 ACT2FN = {"gelu": gelu, "relu": torch.nn.functional.relu, "swish": swish}
 
 class LayerNorm(nn.Module):
@@ -184,6 +196,18 @@ class CrossEn(nn.Module):
         super(CrossEn, self).__init__()
 
     def forward(self, sim_matrix):
+        logpt = F.log_softmax(sim_matrix, dim=-1)
+        logpt = torch.diag(logpt)
+        nce_loss = -logpt
+        sim_loss = nce_loss.mean()
+        return sim_loss
+
+class Dual_CrossEn(nn.Module):
+    def __init__(self,):
+        super(Dual_CrossEn, self).__init__()
+
+    def forward(self, sim_matrix):
+        sim_matrix = get_dual_matrix(sim_matrix)
         logpt = F.log_softmax(sim_matrix, dim=-1)
         logpt = torch.diag(logpt)
         nce_loss = -logpt

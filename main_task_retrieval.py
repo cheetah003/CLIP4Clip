@@ -4,11 +4,12 @@ from __future__ import unicode_literals
 from __future__ import print_function
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '4,5,6,7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
 import torch
 from torch.utils.data import (SequentialSampler)
 import numpy as np
 import random
+
 
 from metrics import compute_metrics, tensor_text_to_video_metrics, tensor_video_to_text_sim
 import time
@@ -19,6 +20,7 @@ from modules.tokenization_clip import SimpleTokenizer as ClipTokenizer
 from modules.file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 from modules.modeling import CLIP4Clip
 from modules.optimization import BertAdam
+from modules.until_module import get_dual_matrix
 from torch.utils.data import DataLoader
 from util import parallel_apply, get_logger
 from dataloaders.dataloader_msrvtt_retrieval import MSRVTT_DataLoader
@@ -247,8 +249,8 @@ def dataloader_msrvtt_train(args, tokenizer):
     #     frame_order=args.train_frame_order,
     #     slice_framepos=args.slice_framepos,
     # )
-    # msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/train_database24_16',
-    #                            jsonpath='/home/shenwenxue/data/datasets/bird/train_data.json',
+    # msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/video_lmdb',
+    #                            jsonpath='/home/shenwenxue/data/datasets/bird/all_data.json',
     #                            tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/video_asr_lmdb_array',
                                jsonpath='/home/shenwenxue/data/datasets/bird/train_data_ocr.json',
@@ -278,8 +280,8 @@ def dataloader_msrvtt_test(args, tokenizer):
     #     frame_order=args.eval_frame_order,
     #     slice_framepos=args.slice_framepos,
     # )
-    # msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/val_database24_16',
-    #                            jsonpath='/home/shenwenxue/data/datasets/bird/val_data.json',
+    # msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/video_lmdb',
+    #                            jsonpath='/home/shenwenxue/data/datasets/bird/all_data.json',
     #                            tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/video_asr_lmdb_array',
                                jsonpath='/home/shenwenxue/data/datasets/bird/val_data_ocr.json',
@@ -516,9 +518,12 @@ def _run_on_single_gpu(model, batch_list_t, batch_list_v, batch_sequence_output_
         ocr_each_row = np.concatenate(tuple(ocr_each_row), axis=-1)
         title_each_row = np.concatenate(tuple(title_each_row), axis=-1)
 
-        sim_matrix.append(preprocessing.scale(each_row, axis=1))
-        sim_matrix_ocr.append(preprocessing.scale(ocr_each_row, axis=1))
-        sim_matrix_title.append(preprocessing.scale(title_each_row, axis=1))
+        # sim_matrix.append(preprocessing.scale(each_row, axis=1))
+        # sim_matrix_ocr.append(preprocessing.scale(ocr_each_row, axis=1))
+        # sim_matrix_title.append(preprocessing.scale(title_each_row, axis=1))
+        sim_matrix.append(each_row)
+        sim_matrix_ocr.append(ocr_each_row)
+        sim_matrix_title.append(title_each_row)
     # logger.info("sim_matrix:{}".format(sim_matrix))
     # logger.info("sim_matrix_ocr:{}".format(sim_matrix_ocr))
     # logger.info("sim_matrix_title:{}".format(sim_matrix_title))
@@ -569,8 +574,8 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
             batch = tuple(t.to(device) for t in batch)
             # input_ids, input_mask, segment_ids, video, video_mask = batch
             input_ids, input_mask, segment_ids, video, video_mask, ocr_ids, title_ids = batch
-            # logger.info("bid:{}".format(bid))
-            # logger.info("input_ids:{}".format(input_ids))
+            logger.info("bid:{}/{}".format(bid, len(test_dataloader)))
+            # logger.info("video.shape:{}".format(video.shape))
             if multi_sentence_:
                 # multi-sentences retrieval means: one clip has two or more descriptions.
                 b, *_t = video.shape
@@ -615,7 +620,8 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
         # ----------------------------------
         # 2. calculate the similarity
         # ----------------------------------
-        logger.info("n_gpu{}".format(n_gpu))
+        logger.info("n_gpu:{}".format(n_gpu))
+        logger.info("model.weight_sum:{}".format(model.weight_sum))
         if n_gpu > 1:
             device_ids = list(range(n_gpu))
             batch_list_t_splits = []
@@ -666,20 +672,23 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
                 sim_matrix_ocr += parallel_outputs_ocr
                 sim_matrix_title += parallel_outputs_title
             sim_matrix = np.concatenate(tuple(sim_matrix), axis=0)
-            sim_matrix_ocr = np.concatenate(tuple(sim_matrix_ocr), axis=0)
+            # sim_matrix_ocr = np.concatenate(tuple(sim_matrix_ocr), axis=0)
             sim_matrix_title = np.concatenate(tuple(sim_matrix_title), axis=0)
-            # sim_matrix = sim_matrix + sim_matrix_ocr + sim_matrix_title
-            sim_matrix = sim_matrix + sim_matrix_title
+            # sim_matrix_ocr_frame = sim_matrix + sim_matrix_ocr
+            # sim_matrix_title_frame = sim_matrix + sim_matrix_title
+            # sim_matrix_title_ocr = sim_matrix_ocr + sim_matrix_title
+            # sim_matrix = sim_matrix + sim_matrix_title
+            sim_matrix = model.weight_sum[0].cpu() * sim_matrix + (1 - model.weight_sum[0].cpu()) * sim_matrix_title
         else:
             sim_matrix_tuple = _run_on_single_gpu(model, batch_list_t, batch_list_v,
                                                   batch_sequence_output_list, batch_visual_output_list,
                                                   batch_ocr_output_list, batch_title_output_list)
             sim_matrix, sim_matrix_ocr, sim_matrix_title = sim_matrix_tuple
             sim_matrix = np.concatenate(tuple(sim_matrix), axis=0)
-            sim_matrix_ocr = np.concatenate(tuple(sim_matrix_ocr), axis=0)
+            # sim_matrix_ocr = np.concatenate(tuple(sim_matrix_ocr), axis=0)
             sim_matrix_title = np.concatenate(tuple(sim_matrix_title), axis=0)
-            # sim_matrix = sim_matrix + sim_matrix_ocr + sim_matrix_title
-            sim_matrix = sim_matrix + sim_matrix_title
+            # sim_matrix = sim_matrix + sim_matrix_title
+            sim_matrix = model.weight_sum[0].cpu() * sim_matrix + (1 - model.weight_sum[0].cpu()) * sim_matrix_title
     if multi_sentence_:
         logger.info("before reshape, sim matrix size: {} x {}".format(sim_matrix.shape[0], sim_matrix.shape[1]))
         cut_off_points2len_ = [itm + 1 for itm in cut_off_points_]
@@ -697,8 +706,15 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
         vt_metrics = compute_metrics(tensor_video_to_text_sim(sim_matrix))
     else:
         logger.info("sim matrix size:  {}".format(np.array(sim_matrix).shape))
+        sim_matrix = get_dual_matrix(sim_matrix)
         tv_metrics = compute_metrics(sim_matrix)
         vt_metrics = compute_metrics(sim_matrix.T)
+        # tv_metrics_ocr = compute_metrics(sim_matrix_ocr)
+        # tv_metrics_title = compute_metrics(sim_matrix_title)
+        # tv_metrics_all = compute_metrics(sim_matrix_all)
+        # tv_metrics_ocr_frame = compute_metrics(sim_matrix_ocr_frame)
+        # tv_metrics_title_frame = compute_metrics(sim_matrix_title_frame)
+        # tv_metrics_title_ocr = compute_metrics(sim_matrix_title_ocr)
         logger.info('\t Length-T: {}, Length-V:{}'.format(len(sim_matrix), len(sim_matrix[0])))
 
     logger.info("Text-to-Video:")
@@ -708,6 +724,20 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
     logger.info(
         '\t>>>  V2T$R@1: {:.1f} - V2T$R@5: {:.1f} - V2T$R@10: {:.1f} - V2T$Median R: {:.1f} - V2T$Mean R: {:.1f}'.
             format(vt_metrics['R1'], vt_metrics['R5'], vt_metrics['R10'], vt_metrics['MR'], vt_metrics['MeanR']))
+    # logger.info('\tframe>>>  R@1: {:.1f} - R@5: {:.1f} - R@10: {:.1f} - Median R: {:.1f} - Mean R: {:.1f}'.
+    #             format(tv_metrics['R1'], tv_metrics['R5'], tv_metrics['R10'], tv_metrics['MR'], tv_metrics['MeanR']))
+    # logger.info('\tocr>>>  R@1: {:.1f} - R@5: {:.1f} - R@10: {:.1f} - Median R: {:.1f} - Mean R: {:.1f}'.
+    #             format(tv_metrics_ocr['R1'], tv_metrics_ocr['R5'], tv_metrics_ocr['R10'], tv_metrics_ocr['MR'], tv_metrics_ocr['MeanR']))
+    # logger.info('\ttitle>>>  R@1: {:.1f} - R@5: {:.1f} - R@10: {:.1f} - Median R: {:.1f} - Mean R: {:.1f}'.
+    #             format(tv_metrics_title['R1'], tv_metrics_title['R5'], tv_metrics_title['R10'], tv_metrics_title['MR'], tv_metrics_title['MeanR']))
+    # logger.info('\tocr_frame>>>  R@1: {:.1f} - R@5: {:.1f} - R@10: {:.1f} - Median R: {:.1f} - Mean R: {:.1f}'.
+    #             format(tv_metrics_ocr_frame['R1'], tv_metrics_ocr_frame['R5'], tv_metrics_ocr_frame['R10'], tv_metrics_ocr_frame['MR'], tv_metrics_ocr_frame['MeanR']))
+    # logger.info('\ttitle_frame>>>  R@1: {:.1f} - R@5: {:.1f} - R@10: {:.1f} - Median R: {:.1f} - Mean R: {:.1f}'.
+    #             format(tv_metrics_title_frame['R1'], tv_metrics_title_frame['R5'], tv_metrics_title_frame['R10'], tv_metrics_title_frame['MR'], tv_metrics_title_frame['MeanR']))
+    # logger.info('\ttitle_ocr>>>  R@1: {:.1f} - R@5: {:.1f} - R@10: {:.1f} - Median R: {:.1f} - Mean R: {:.1f}'.
+    #             format(tv_metrics_title_ocr['R1'], tv_metrics_title_ocr['R5'], tv_metrics_title_ocr['R10'], tv_metrics_title_ocr['MR'], tv_metrics_title_ocr['MeanR']))
+    # logger.info('\tall>>>  R@1: {:.1f} - R@5: {:.1f} - R@10: {:.1f} - Median R: {:.1f} - Mean R: {:.1f}'.
+    #             format(tv_metrics_all['R1'], tv_metrics_all['R5'], tv_metrics_all['R10'], tv_metrics_all['MR'], tv_metrics_all['MeanR']))
 
     R1 = tv_metrics['R1']
     return R1
@@ -802,13 +832,13 @@ def main():
                                                scheduler, global_step, local_rank=args.local_rank)
             if args.local_rank == 0:
                 logger.info("Epoch %d/%s Finished, Train Loss: %f", epoch + 1, args.epochs, tr_loss)
-                if epoch % 10 == 0:
+                if epoch == 100:
                     output_model_file = None
                     ## Uncomment if want to save checkpoint
-                    # output_model_file = save_model(epoch, args, model, type_name="")
+                    output_model_file = save_model(epoch, args, model, type_name="")
 
                     ## Run on val dataset, this process is *TIME-consuming*.
-                    # logger.info("Eval on val dataset")
+                    logger.info("Eval on val dataset")
                     # R1 = eval_epoch(args, model, val_dataloader, device, n_gpu)
 
                     R1 = eval_epoch(args, model, test_dataloader, device, n_gpu)
@@ -821,6 +851,8 @@ def main():
         # if args.local_rank == 0:
         #     model = load_model(-1, args, n_gpu, device, model_file=best_output_model_file)
         #     eval_epoch(args, model, test_dataloader, device, n_gpu)
+
+
 
     elif args.do_eval:
         if args.local_rank == 0:

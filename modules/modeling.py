@@ -8,7 +8,7 @@ import torch
 from torch import nn
 from transformers import AlbertModel, AlbertConfig, AutoConfig, AutoModel
 
-from modules.until_module import PreTrainedModel, AllGather, CrossEn
+from modules.until_module import PreTrainedModel, AllGather, CrossEn, Dual_CrossEn
 from modules.module_cross import CrossModel, CrossConfig, Transformer as TransformerClip
 
 from modules.module_clip import CLIP, convert_weights
@@ -42,9 +42,9 @@ class CLIP4ClipPreTrainedModel(PreTrainedModel, nn.Module):
                 task_config.local_rank = 0
 
         if state_dict is None: state_dict = {}
-        # clip_state_dict = CLIP.get_config(pretrained_clip_name="ViT-B/32")
+        clip_state_dict = CLIP.get_config(pretrained_clip_name="ViT-B/32")
         # clip_state_dict = CLIP.get_config(pretrained_clip_name="RN50")
-        clip_state_dict = CLIP.get_config(pretrained_clip_name="RN101")
+        # clip_state_dict = CLIP.get_config(pretrained_clip_name="RN101")
 
         for key, val in clip_state_dict.items():
             new_key = "clip." + key
@@ -168,13 +168,14 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             self.loose_type = True
             show_log(task_config, "Test retrieval by loose type.")
 
+        self.weight_sum = torch.nn.Parameter(torch.tensor([0.5]), requires_grad=True)
         # albert text Encoder
         # pretrained = 'voidful/albert_chinese_base'
         pretrained = 'hfl/chinese-roberta-wwm-ext'
         # pretrained = 'hfl/chinese-roberta-wwm-ext-large'
         # pretrained = "nghuyong/ernie-1.0"
         my_config = AutoConfig.from_pretrained(pretrained)
-        logger.info("name:{},chinesebert_config:{}".format(pretrained,my_config))
+        logger.info("name:{},chinesebert_config:{}".format(pretrained, my_config))
         self.chinese_bert = AutoModel.from_pretrained(pretrained)
         # End of albert text Encoder
 
@@ -190,14 +191,16 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             image_resolution = vision_patch_size * grid_size
         else:
             counts: list = [len(set(k.split(".")[2] for k in clip_state_dict if k.startswith(f"visual.layer{b}"))) for b
-                            in
-                            [1, 2, 3, 4]]
+                            in [1, 2, 3, 4]]
             vision_layers = tuple(counts)
             vision_width = clip_state_dict["visual.layer1.0.conv1.weight"].shape[0]
             output_width = round((clip_state_dict["visual.attnpool.positional_embedding"].shape[0] - 1) ** 0.5)
             vision_patch_size = None
             assert output_width ** 2 + 1 == clip_state_dict["visual.attnpool.positional_embedding"].shape[0]
-            image_resolution = output_width * 32
+            image_resolution = output_width * 32  # resolution 224
+            # image_resolution = output_width * 32 * 2  # resolution 448
+            # logger.info("shape:{}".format(clip_state_dict["visual.attnpool.positional_embedding"].shape))
+        # logger.info("output_width:{}".format(output_width))
 
         # embed_dim = clip_state_dict["text_projection"].shape[1]
         embed_dim = my_config.hidden_size
@@ -271,6 +274,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
                                        batch_first=True, bidirectional=False, num_layers=1)
 
         self.loss_fct = CrossEn()
+        self.loss_fct_dual = Dual_CrossEn()
 
         self.apply(self.init_weights)
 
@@ -299,17 +303,21 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             loss = 0.
             sim_matrix, *_tmp = self.get_similarity_logits(sequence_output, visual_output, attention_mask, video_mask,
                                                            shaped=True, loose_type=self.loose_type)
+            # logger.info("sim_matrix.shape:{}".format(sim_matrix.shape))
             # sim_matrix_ocr = self.loose_similarity_for_text(sequence_output, ocr_output)
             sim_matrix_title = self.loose_similarity_for_text(sequence_output, title_output)
-
-            # logger.info("sim_matrix.shape:{}".format(sim_matrix.shape))
-            sim_loss1 = self.loss_fct(sim_matrix)
+            # logger.info("sim_matrix_title.shape:{}".format(sim_matrix_title.shape))
+            # sim_matrix = sim_matrix + sim_matrix_title
+            sim_matrix = self.weight_sum[0] * sim_matrix + (1-self.weight_sum[0]) * sim_matrix_title
+            # logger.info("weight_sum:{}".format(self.weight_sum))
+            sim_loss1 = self.loss_fct_dual(sim_matrix)
+            # sim_loss1 = self.loss_fct(sim_matrix)
             # sim_loss2 = self.loss_fct(sim_matrix.T)
             # sim_loss_ocr = self.loss_fct(sim_matrix_ocr)
-            sim_loss_title = self.loss_fct(sim_matrix_title)
-            logger.info("sim_loss1:{},sim_loss_title:{}".format(sim_loss1, sim_loss_title))
-            # sim_loss = sim_loss1 + sim_loss_ocr + sim_loss_title
-            sim_loss = sim_loss1 + sim_loss_title
+            # sim_loss_title = self.loss_fct(sim_matrix_title)
+            # logger.info("sim_loss1:{},sim_loss_title:{}".format(sim_loss1, sim_loss_title))
+            # sim_loss = sim_loss1 + sim_loss_title
+            sim_loss = sim_loss1
             loss += sim_loss
 
             return loss
@@ -332,7 +340,6 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             sequence_hidden = self.chinese_bert(input_ids)
             # logger.info("before sequence_hidden.shape:{}".format(sequence_hidden.shape))
             sequence_hidden = sequence_hidden[1]
-
 
         sequence_hidden = sequence_hidden.view(bs_pair, -1, sequence_hidden.size(-1))
         # logger.info("after sequence_hidden1.shape:{}".format(sequence_hidden.shape))
@@ -484,7 +491,14 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
     def _cross_similarity(self, sequence_output, visual_output, attention_mask, video_mask):
         sequence_output, visual_output = sequence_output.contiguous(), visual_output.contiguous()
 
+        if self.training:
+            visual_output = allgather(visual_output, self.task_config)
+            video_mask = allgather(video_mask, self.task_config)
+            sequence_output = allgather(sequence_output, self.task_config)
+            torch.distributed.barrier()
+
         b_text, s_text, h_text = sequence_output.size()
+
         b_visual, s_visual, h_visual = visual_output.size()
 
         retrieve_logits_list = []

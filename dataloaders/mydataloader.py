@@ -6,6 +6,7 @@ import numpy as np
 
 import lmdb
 import torch
+import random
 from torchvision.datasets import VisionDataset
 from torch.utils.data import DataLoader, Dataset
 from transformers import BertTokenizer
@@ -22,7 +23,7 @@ def read_json_line(path):
 
 class BasicLMDB(VisionDataset):
     def __init__(self, root: str, jsonpath:str, maxTxns: int = 1, tokenizer=None,
-                 resolution=224, max_words=32, max_frames=12, transform: Optional[Callable] = None,
+                 resolution=224, max_words=32, max_frames=24, transform: Optional[Callable] = None,
                  is_valid_file: Optional[Callable[[str], bool]] = None) -> None:
         super().__init__(root, transform=transform)
         self._maxTxns = maxTxns
@@ -106,24 +107,34 @@ class BasicLMDB(VisionDataset):
         # print("caption:{}".format(caption))
         video_data = video_data.copy()
         video_data = video_data.astype('float64')
-        video_data = video_data.reshape([-1, self.max_frames, 1, 3, self.resolution, self.resolution])
+        video_data = video_data.reshape([-1, 24, 1, 3, self.resolution, self.resolution])
+        #random sample start ##################################################
+        # video_index = np.arange(0, 24, 2)
+        # slice = list()
+        # k = 24 // self.max_frames
+        # for i in np.arange(self.max_frames):
+        #     index = random.choice(video_index[k * i:k * (i+1)])
+        #     slice.append(index)
+        # print("video_data.shpae:{}".format(video_data.shape))
+        # video_data = video_data[:, video_index, :, :, :, :]
+        # print("video_data2.shpae:{}".format(video_data.shape))
+        #random sample end ##################################################
         # print("video:{},shape:{},type:{},dtype:{}".format(sys.getsizeof(video_data), video_data.shape, type(video_data),
         #                                                   video_data.dtype))
         ########### not used ocr ###############
-        ocr_ids = [0] * self.max_words
-        ocr_ids = np.array(ocr_ids)
+        # ocr_ids = [0] * self.max_words
+        # ocr_ids = np.array(ocr_ids)
+        # title_ids = ocr_ids
+        # query_text = item['title']
         ######################################
-        # caption = item['title']
-        tag_text = item['tag']
-        # ocr_text = item['ocr']
+        query_text = item['tag']
+        ocr_text = item['ocr']
         title_text = item['title']
-        tag_ids, tag_mask, tag_segment = self._get_text(tag_text)
-        # ocr_ids, ocr_mask, ocr_segment = self._get_text(ocr_text)
-        # ocr_ids, _, _ = self._get_text(ocr_text)
-        # title_ids, title_mask, title_segment = self._get_text(title_text)
+        query_ids, query_mask, query_segment = self._get_text(query_text)
+        ocr_ids, _, _ = self._get_text(ocr_text)
         title_ids, _, _ = self._get_text(title_text)
         video_mask = np.ones(self.max_frames, dtype=np.long)
-        return tag_ids, tag_mask, tag_segment, video_data, video_mask, ocr_ids, title_ids
+        return query_ids, query_mask, query_segment, video_data, video_mask, ocr_ids, title_ids
 
     def __len__(self) -> int:
         return self._length
