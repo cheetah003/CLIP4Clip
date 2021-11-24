@@ -127,6 +127,7 @@ class Transformer(nn.Module):
         self.resblocks = nn.Sequential(*[ResidualAttentionBlock(width, heads) for _ in range(layers)])
 
     def forward(self, x: torch.Tensor, attn_mask: torch.Tensor):
+        logger.info("x.shpae:{},attn_mask:{}".format(x.shape, attn_mask.shape))
         return self.resblocks((x, attn_mask))[0]
 
 class CrossEmbeddings(nn.Module):

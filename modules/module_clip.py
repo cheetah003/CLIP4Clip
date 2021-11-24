@@ -121,10 +121,11 @@ class AttentionPool2d(nn.Module):
         self.num_heads = num_heads
 
     def forward(self, x):
-        # print("x.shape:{}".format(x.shape))
+        # logger.info("x1.shape:{}".format(x.shape))
         x = x.reshape(x.shape[0], x.shape[1], x.shape[2] * x.shape[3]).permute(2, 0, 1)  # NCHW -> (HW)NC
         x = torch.cat([x.mean(dim=0, keepdim=True), x], dim=0)  # (HW+1)NC
         x = x + self.positional_embedding[:, None, :].to(x.dtype)  # (HW+1)NC
+        # logger.info("x2.shape:{}".format(x.shape))
         x, _ = F.multi_head_attention_forward(
             query=x, key=x, value=x,
             embed_dim_to_check=x.shape[-1],
@@ -144,8 +145,9 @@ class AttentionPool2d(nn.Module):
             training=self.training,
             need_weights=False
         )
-
-        return x[0]
+        # logger.info("x3.shape:{}".format(x.shape))
+        # return x[0]
+        return x
 
 
 class ModifiedResNet(nn.Module):
@@ -445,9 +447,13 @@ class CLIP(nn.Module):
 
     def encode_image(self, image, return_hidden=False, video_frame=-1):
         if self.visualtype == 'ViT':
+            # logger.info("image.shape:{}".format(image.shape))
             hidden = self.visual(image.type(self.dtype), video_frame=video_frame)
+            # logger.info("hidden1.shape:{}".format(hidden.shape))
             hidden = self.visual.ln_post(hidden) @ self.visual.proj
-            x = hidden[:, 0, :]
+            # logger.info("hidden2.shape:{}".format(hidden.shape))
+            # x = hidden[:, 0, :]
+            x = hidden
         else:
             hidden = self.visual(image.type(self.dtype))
             x = hidden

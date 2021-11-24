@@ -37,6 +37,7 @@ class BasicLMDB(VisionDataset):
             self.tokenizer = BertTokenizer.from_pretrained('hfl/chinese-roberta-wwm-ext-large')
         else:
             self.tokenizer = tokenizer
+        # print("self.tokenizer:{}.".format(self.tokenizer.vocab))
         # Length is needed for DistributedSampler, but we can't use env to get it, env can't pickle.
         # So we decide to read from metadata placed in the same folder --- see src/misc/datasetCreate.py
         # with open(os.path.join(root, "metadata.json"), "r") as fp:
@@ -61,6 +62,30 @@ class BasicLMDB(VisionDataset):
                               meminit=False, max_spare_txns=self._maxTxns, lock=False)
         self._txn = self._env.begin(write=False, buffers=True)
 
+    def _mask_tokens(self, words):
+        token_labels = []
+        masked_tokens = words.copy()
+
+        for token_id, token in enumerate(masked_tokens):
+            if token_id == 0 or token_id == len(masked_tokens) - 1:
+                token_labels.append(-1)
+                continue
+            prob = random.random()
+            if prob < 0.15:
+                prob /= 0.15
+                if prob < 0.8:
+                    masked_tokens[token_id] = "[MASK]"
+                elif prob < 0.9:
+                    masked_tokens[token_id] = random.choice(list(self.tokenizer.vocab.items()))[0]
+                try:
+                    token_labels.append(self.tokenizer.vocab[token])
+                except KeyError:
+                    token_labels.append(self.tokenizer.vocab["[UNK]"])
+            else:
+                token_labels.append(-1)
+
+        return masked_tokens, token_labels
+
     def _get_text(self, caption=None):
         words = self.tokenizer.tokenize(caption)
         words = [self.SPECIAL_TOKEN["CLS_TOKEN"]] + words
@@ -69,6 +94,9 @@ class BasicLMDB(VisionDataset):
             words = words[:total_length_with_CLS]
         words = words + [self.SPECIAL_TOKEN["SEP_TOKEN"]]
         input_ids = self.tokenizer.convert_tokens_to_ids(words)
+
+        masked_tokens, token_labels = self._mask_tokens(words)
+        masked_token_ids = self.tokenizer.convert_tokens_to_ids(masked_tokens)
         input_mask = [1] * len(input_ids)
         segment_ids = [0] * len(input_ids)
         while len(input_ids) < self.max_words:
@@ -79,11 +107,19 @@ class BasicLMDB(VisionDataset):
         assert len(input_mask) == self.max_words
         assert len(segment_ids) == self.max_words
 
+        while len(masked_token_ids) < self.max_words:
+            masked_token_ids.append(0)
+            token_labels.append(-1)
+        assert len(masked_token_ids) == self.max_words
+        assert len(token_labels) == self.max_words
+
         pairs_text = np.array(input_ids)
         pairs_mask = np.array(input_mask)
         pairs_segment = np.array(segment_ids)
+        pairs_masked_text = np.array(masked_token_ids)
+        pairs_token_labels = np.array(token_labels)
 
-        return pairs_text, pairs_mask, pairs_segment
+        return pairs_text, pairs_mask, pairs_segment, pairs_masked_text, pairs_token_labels
 
     def __getitem__(self, index: int):
         """
@@ -124,17 +160,20 @@ class BasicLMDB(VisionDataset):
         ########### not used ocr ###############
         # ocr_ids = [0] * self.max_words
         # ocr_ids = np.array(ocr_ids)
-        # title_ids = ocr_ids
+        # title_ids = masked_title = masked_title_label = masked_ocr = masked_ocr_label = ocr_ids
         # query_text = item['title']
         ######################################
-        query_text = item['tag']
+        tag_text = item['tag']
         ocr_text = item['ocr']
         title_text = item['title']
-        query_ids, query_mask, query_segment = self._get_text(query_text)
-        ocr_ids, _, _ = self._get_text(ocr_text)
-        title_ids, _, _ = self._get_text(title_text)
+        tag_ids, tag_mask, tag_segment, masked_tag, masked_tag_label = self._get_text(tag_text)
+        ocr_ids, _, _, masked_ocr, masked_ocr_label = self._get_text(ocr_text)
+        title_ids, _, _, masked_title, masked_title_label = self._get_text(title_text)
         video_mask = np.ones(self.max_frames, dtype=np.long)
-        return query_ids, query_mask, query_segment, video_data, video_mask, ocr_ids, title_ids
+        return tag_ids, tag_mask, tag_segment, masked_tag, masked_tag_label,\
+               video_data, video_mask, title_ids, masked_title, masked_title_label, \
+               ocr_ids, masked_ocr, masked_ocr_label
+
 
     def __len__(self) -> int:
         return self._length

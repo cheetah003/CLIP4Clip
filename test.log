@@ -1,0 +1,829 @@
+2021-11-24 15:06:53.985560: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcudart.so.11.0
+11/24/2021 15:07:03 - INFO -   Effective parameters:
+11/24/2021 15:07:03 - INFO -     <<< batch_size: 256
+11/24/2021 15:07:03 - INFO -     <<< batch_size_val: 32
+11/24/2021 15:07:03 - INFO -     <<< cache_dir: 
+11/24/2021 15:07:03 - INFO -     <<< chinese_lr: 3e-05
+11/24/2021 15:07:03 - INFO -     <<< coef_lr: 0.001
+11/24/2021 15:07:03 - INFO -     <<< cross_model: cross-base
+11/24/2021 15:07:03 - INFO -     <<< cross_num_hidden_layers: 4
+11/24/2021 15:07:03 - INFO -     <<< data_path: data/caption.pickle
+11/24/2021 15:07:03 - INFO -     <<< datatype: msrvtt
+11/24/2021 15:07:03 - INFO -     <<< do_eval: True
+11/24/2021 15:07:03 - INFO -     <<< do_lower_case: False
+11/24/2021 15:07:03 - INFO -     <<< do_pretrain: False
+11/24/2021 15:07:03 - INFO -     <<< do_train: False
+11/24/2021 15:07:03 - INFO -     <<< epochs: 101
+11/24/2021 15:07:03 - INFO -     <<< eval_frame_order: 0
+11/24/2021 15:07:03 - INFO -     <<< expand_msrvtt_sentences: False
+11/24/2021 15:07:03 - INFO -     <<< feature_framerate: 1
+11/24/2021 15:07:03 - INFO -     <<< features_path: data/videos_feature.pickle
+11/24/2021 15:07:03 - INFO -     <<< fp16: False
+11/24/2021 15:07:03 - INFO -     <<< fp16_opt_level: O1
+11/24/2021 15:07:03 - INFO -     <<< freeze_layer_num: 0
+11/24/2021 15:07:03 - INFO -     <<< gradient_accumulation_steps: 1
+11/24/2021 15:07:03 - INFO -     <<< hard_negative_rate: 0.5
+11/24/2021 15:07:03 - INFO -     <<< init_model: ckpts/coatten/pytorch_model.bin.100
+11/24/2021 15:07:03 - INFO -     <<< linear_patch: 2d
+11/24/2021 15:07:03 - INFO -     <<< local_rank: 0
+11/24/2021 15:07:03 - INFO -     <<< loose_type: True
+11/24/2021 15:07:03 - INFO -     <<< lr: 0.0001
+11/24/2021 15:07:03 - INFO -     <<< lr_decay: 0.9
+11/24/2021 15:07:03 - INFO -     <<< margin: 0.1
+11/24/2021 15:07:03 - INFO -     <<< max_frames: 24
+11/24/2021 15:07:03 - INFO -     <<< max_words: 32
+11/24/2021 15:07:03 - INFO -     <<< n_display: 1
+11/24/2021 15:07:03 - INFO -     <<< n_gpu: 1
+11/24/2021 15:07:03 - INFO -     <<< n_pair: 1
+11/24/2021 15:07:03 - INFO -     <<< negative_weighting: 1
+11/24/2021 15:07:03 - INFO -     <<< num_thread_reader: 0
+11/24/2021 15:07:03 - INFO -     <<< output_dir: ckpts/lr_e5_3e5_rs101_robase_frame
+11/24/2021 15:07:03 - INFO -     <<< rank: 0
+11/24/2021 15:07:03 - INFO -     <<< sampled_use_mil: False
+11/24/2021 15:07:03 - INFO -     <<< seed: 42
+11/24/2021 15:07:03 - INFO -     <<< sim_header: meanP
+11/24/2021 15:07:03 - INFO -     <<< slice_framepos: 2
+11/24/2021 15:07:03 - INFO -     <<< task_type: retrieval
+11/24/2021 15:07:03 - INFO -     <<< text_num_hidden_layers: 12
+11/24/2021 15:07:03 - INFO -     <<< train_csv: data/.train.csv
+11/24/2021 15:07:03 - INFO -     <<< train_frame_order: 0
+11/24/2021 15:07:03 - INFO -     <<< use_mil: False
+11/24/2021 15:07:03 - INFO -     <<< val_csv: data/.val.csv
+11/24/2021 15:07:03 - INFO -     <<< video_dim: 1024
+11/24/2021 15:07:03 - INFO -     <<< visual_num_hidden_layers: 12
+11/24/2021 15:07:03 - INFO -     <<< warmup_proportion: 0.1
+11/24/2021 15:07:03 - INFO -     <<< world_size: 1
+11/24/2021 15:07:03 - INFO -   device: cuda:0 n_gpu: 1
+11/24/2021 15:07:03 - INFO -   tokenizer:hfl/chinese-roberta-wwm-ext
+11/24/2021 15:07:11 - INFO -   pretrained_clip_name:RN101
+11/24/2021 15:07:14 - INFO -   loading archive file /raid/shenwenxue/code/Clip4Clip/modules/cross-base
+11/24/2021 15:07:14 - INFO -   Model config {
+  "attention_probs_dropout_prob": 0.1,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "initializer_range": 0.02,
+  "intermediate_size": 2048,
+  "max_position_embeddings": 88,
+  "num_attention_heads": 8,
+  "num_hidden_layers": 4,
+  "type_vocab_size": 2,
+  "vocab_size": 512
+}
+
+11/24/2021 15:07:14 - INFO -   Weight doesn't exsits. /raid/shenwenxue/code/Clip4Clip/modules/cross-base/cross_pytorch_model.bin
+11/24/2021 15:07:14 - WARNING -   Stage-One:True, Stage-Two:False
+11/24/2021 15:07:14 - WARNING -   Test retrieval by loose type.
+11/24/2021 15:07:15 - INFO -   name:hfl/chinese-roberta-wwm-ext,chinesebert_config:BertConfig {
+  "architectures": [
+    "BertForMaskedLM"
+  ],
+  "attention_probs_dropout_prob": 0.1,
+  "bos_token_id": 0,
+  "directionality": "bidi",
+  "eos_token_id": 2,
+  "gradient_checkpointing": false,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "layer_norm_eps": 1e-12,
+  "max_position_embeddings": 512,
+  "model_type": "bert",
+  "num_attention_heads": 12,
+  "num_hidden_layers": 12,
+  "output_past": true,
+  "pad_token_id": 1,
+  "pooler_fc_size": 768,
+  "pooler_num_attention_heads": 12,
+  "pooler_num_fc_layers": 3,
+  "pooler_size_per_head": 128,
+  "pooler_type": "first_token_transform",
+  "position_embedding_type": "absolute",
+  "transformers_version": "4.6.1",
+  "type_vocab_size": 2,
+  "use_cache": true,
+  "vocab_size": 21128
+}
+
+Some weights of the model checkpoint at hfl/chinese-roberta-wwm-ext were not used when initializing BertModel: ['cls.predictions.transform.LayerNorm.bias', 'cls.predictions.transform.LayerNorm.weight', 'cls.predictions.bias', 'cls.predictions.transform.dense.weight', 'cls.seq_relationship.weight', 'cls.predictions.transform.dense.bias', 'cls.predictions.decoder.weight', 'cls.seq_relationship.bias']
+- This IS expected if you are initializing BertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing BertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+11/24/2021 15:07:21 - INFO -   co_attention_model init
+11/24/2021 15:07:21 - INFO -   use_pretrain:True
+11/24/2021 15:07:21 - INFO -   loading weights file pretrain/multi_task_model.bin
+11/24/2021 15:07:21 - INFO -   VILBertForVLTasks init
+11/24/2021 15:07:21 - INFO -   BertModel init
+11/24/2021 15:07:21 - INFO -   BertEmbeddings init
+11/24/2021 15:07:22 - INFO -   BertImageEmbeddings init
+11/24/2021 15:07:22 - INFO -   BertEncoder init
+11/24/2021 15:07:39 - INFO -   Weights from pretrained model not used in VILBertForVLTasks: ['bert.embeddings.task_embeddings.weight']
+11/24/2021 15:07:39 - ERROR -   Error(s) in loading state_dict for VILBertForVLTasks:
+	size mismatch for bert.v_embeddings.image_embeddings.weight: copying a param with shape torch.Size([1024, 2048]) from checkpoint, the shape in current model is torch.Size([768, 2048]).
+	size mismatch for bert.v_embeddings.image_embeddings.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.v_embeddings.image_location_embeddings.weight: copying a param with shape torch.Size([1024, 5]) from checkpoint, the shape in current model is torch.Size([768, 5]).
+	size mismatch for bert.v_embeddings.image_location_embeddings.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.v_embeddings.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.v_embeddings.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.0.attention.self.query.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.0.attention.self.query.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.0.attention.self.key.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.0.attention.self.key.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.0.attention.self.value.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.0.attention.self.value.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.0.attention.output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.0.attention.output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.0.attention.output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.0.attention.output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.0.intermediate.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.0.intermediate.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.0.output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.0.output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.0.output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.0.output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.1.attention.self.query.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.1.attention.self.query.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.1.attention.self.key.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.1.attention.self.key.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.1.attention.self.value.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.1.attention.self.value.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.1.attention.output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.1.attention.output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.1.attention.output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.1.attention.output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.1.intermediate.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.1.intermediate.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.1.output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.1.output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.1.output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.1.output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.2.attention.self.query.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.2.attention.self.query.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.2.attention.self.key.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.2.attention.self.key.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.2.attention.self.value.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.2.attention.self.value.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.2.attention.output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.2.attention.output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.2.attention.output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.2.attention.output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.2.intermediate.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.2.intermediate.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.2.output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.2.output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.2.output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.2.output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.3.attention.self.query.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.3.attention.self.query.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.3.attention.self.key.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.3.attention.self.key.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.3.attention.self.value.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.3.attention.self.value.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.3.attention.output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.3.attention.output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.3.attention.output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.3.attention.output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.3.intermediate.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.3.intermediate.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.3.output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.3.output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.3.output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.3.output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.4.attention.self.query.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.4.attention.self.query.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.4.attention.self.key.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.4.attention.self.key.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.4.attention.self.value.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.4.attention.self.value.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.4.attention.output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.4.attention.output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.4.attention.output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.4.attention.output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.4.intermediate.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.4.intermediate.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.4.output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.4.output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.4.output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.4.output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.5.attention.self.query.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.5.attention.self.query.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.5.attention.self.key.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.5.attention.self.key.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.5.attention.self.value.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.5.attention.self.value.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.5.attention.output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.5.attention.output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.5.attention.output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.5.attention.output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.5.intermediate.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.5.intermediate.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.5.output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.v_layer.5.output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.5.output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.v_layer.5.output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.biattention.query1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.0.biattention.query1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.biattention.key1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.0.biattention.key1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.biattention.value1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.0.biattention.value1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.biattention.query2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.0.biattention.query2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.biattention.key2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.0.biattention.key2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.biattention.value2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.0.biattention.value2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.biOutput.dense1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.0.biOutput.dense1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.biOutput.LayerNorm1.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.biOutput.LayerNorm1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.biOutput.q_dense1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.0.biOutput.q_dense1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.biOutput.dense2.weight: copying a param with shape torch.Size([768, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.0.biOutput.q_dense2.weight: copying a param with shape torch.Size([768, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.0.v_intermediate.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.0.v_intermediate.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.v_output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.0.v_output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.v_output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.0.v_output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.biattention.query1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.1.biattention.query1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.biattention.key1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.1.biattention.key1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.biattention.value1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.1.biattention.value1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.biattention.query2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.1.biattention.query2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.biattention.key2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.1.biattention.key2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.biattention.value2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.1.biattention.value2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.biOutput.dense1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.1.biOutput.dense1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.biOutput.LayerNorm1.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.biOutput.LayerNorm1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.biOutput.q_dense1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.1.biOutput.q_dense1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.biOutput.dense2.weight: copying a param with shape torch.Size([768, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.1.biOutput.q_dense2.weight: copying a param with shape torch.Size([768, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.1.v_intermediate.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.1.v_intermediate.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.v_output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.1.v_output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.v_output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.1.v_output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.biattention.query1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.2.biattention.query1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.biattention.key1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.2.biattention.key1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.biattention.value1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.2.biattention.value1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.biattention.query2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.2.biattention.query2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.biattention.key2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.2.biattention.key2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.biattention.value2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.2.biattention.value2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.biOutput.dense1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.2.biOutput.dense1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.biOutput.LayerNorm1.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.biOutput.LayerNorm1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.biOutput.q_dense1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.2.biOutput.q_dense1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.biOutput.dense2.weight: copying a param with shape torch.Size([768, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.2.biOutput.q_dense2.weight: copying a param with shape torch.Size([768, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.2.v_intermediate.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.2.v_intermediate.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.v_output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.2.v_output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.v_output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.2.v_output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.biattention.query1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.3.biattention.query1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.biattention.key1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.3.biattention.key1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.biattention.value1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.3.biattention.value1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.biattention.query2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.3.biattention.query2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.biattention.key2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.3.biattention.key2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.biattention.value2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.3.biattention.value2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.biOutput.dense1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.3.biOutput.dense1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.biOutput.LayerNorm1.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.biOutput.LayerNorm1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.biOutput.q_dense1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.3.biOutput.q_dense1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.biOutput.dense2.weight: copying a param with shape torch.Size([768, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.3.biOutput.q_dense2.weight: copying a param with shape torch.Size([768, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.3.v_intermediate.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.3.v_intermediate.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.v_output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.3.v_output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.v_output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.3.v_output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.biattention.query1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.4.biattention.query1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.biattention.key1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.4.biattention.key1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.biattention.value1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.4.biattention.value1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.biattention.query2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.4.biattention.query2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.biattention.key2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.4.biattention.key2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.biattention.value2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.4.biattention.value2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.biOutput.dense1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.4.biOutput.dense1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.biOutput.LayerNorm1.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.biOutput.LayerNorm1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.biOutput.q_dense1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.4.biOutput.q_dense1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.biOutput.dense2.weight: copying a param with shape torch.Size([768, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.4.biOutput.q_dense2.weight: copying a param with shape torch.Size([768, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.4.v_intermediate.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.4.v_intermediate.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.v_output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.4.v_output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.v_output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.4.v_output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.biattention.query1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.5.biattention.query1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.biattention.key1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.5.biattention.key1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.biattention.value1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.5.biattention.value1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.biattention.query2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.5.biattention.query2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.biattention.key2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.5.biattention.key2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.biattention.value2.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.5.biattention.value2.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.biOutput.dense1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.5.biOutput.dense1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.biOutput.LayerNorm1.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.biOutput.LayerNorm1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.biOutput.q_dense1.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.5.biOutput.q_dense1.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.biOutput.dense2.weight: copying a param with shape torch.Size([768, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.5.biOutput.q_dense2.weight: copying a param with shape torch.Size([768, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.5.v_intermediate.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.5.v_intermediate.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.v_output.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.encoder.c_layer.5.v_output.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.v_output.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.encoder.c_layer.5.v_output.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.t_pooler.dense.weight: copying a param with shape torch.Size([1024, 768]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.t_pooler.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for bert.v_pooler.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for bert.v_pooler.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for cls.bi_seq_relationship.weight: copying a param with shape torch.Size([2, 1024]) from checkpoint, the shape in current model is torch.Size([2, 768]).
+	size mismatch for cls.imagePredictions.transform.dense.weight: copying a param with shape torch.Size([1024, 1024]) from checkpoint, the shape in current model is torch.Size([768, 768]).
+	size mismatch for cls.imagePredictions.transform.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for cls.imagePredictions.transform.LayerNorm.weight: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for cls.imagePredictions.transform.LayerNorm.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).
+	size mismatch for cls.imagePredictions.decoder.weight: copying a param with shape torch.Size([1601, 1024]) from checkpoint, the shape in current model is torch.Size([1601, 768]).
+	size mismatch for vil_prediction.logit_fc.0.weight: copying a param with shape torch.Size([2048, 1024]) from checkpoint, the shape in current model is torch.Size([1536, 768]).
+	size mismatch for vil_prediction.logit_fc.0.bias: copying a param with shape torch.Size([2048]) from checkpoint, the shape in current model is torch.Size([1536]).
+	size mismatch for vil_prediction.logit_fc.2.weight: copying a param with shape torch.Size([2048]) from checkpoint, the shape in current model is torch.Size([1536]).
+	size mismatch for vil_prediction.logit_fc.2.bias: copying a param with shape torch.Size([2048]) from checkpoint, the shape in current model is torch.Size([1536]).
+	size mismatch for vil_prediction.logit_fc.3.weight: copying a param with shape torch.Size([3129, 2048]) from checkpoint, the shape in current model is torch.Size([3129, 1536]).
+	size mismatch for vil_prediction_gqa.logit_fc.0.weight: copying a param with shape torch.Size([2048, 1024]) from checkpoint, the shape in current model is torch.Size([1536, 768]).
+	size mismatch for vil_prediction_gqa.logit_fc.0.bias: copying a param with shape torch.Size([2048]) from checkpoint, the shape in current model is torch.Size([1536]).
+	size mismatch for vil_prediction_gqa.logit_fc.2.weight: copying a param with shape torch.Size([2048]) from checkpoint, the shape in current model is torch.Size([1536]).
+	size mismatch for vil_prediction_gqa.logit_fc.2.bias: copying a param with shape torch.Size([2048]) from checkpoint, the shape in current model is torch.Size([1536]).
+	size mismatch for vil_prediction_gqa.logit_fc.3.weight: copying a param with shape torch.Size([1533, 2048]) from checkpoint, the shape in current model is torch.Size([1533, 1536]).
+	size mismatch for vil_binary_prediction.logit_fc.0.weight: copying a param with shape torch.Size([2048, 2048]) from checkpoint, the shape in current model is torch.Size([1536, 1536]).
+	size mismatch for vil_binary_prediction.logit_fc.0.bias: copying a param with shape torch.Size([2048]) from checkpoint, the shape in current model is torch.Size([1536]).
+	size mismatch for vil_binary_prediction.logit_fc.2.weight: copying a param with shape torch.Size([2048]) from checkpoint, the shape in current model is torch.Size([1536]).
+	size mismatch for vil_binary_prediction.logit_fc.2.bias: copying a param with shape torch.Size([2048]) from checkpoint, the shape in current model is torch.Size([1536]).
+	size mismatch for vil_binary_prediction.logit_fc.3.weight: copying a param with shape torch.Size([2, 2048]) from checkpoint, the shape in current model is torch.Size([2, 1536]).
+	size mismatch for vil_logit.weight: copying a param with shape torch.Size([1, 1024]) from checkpoint, the shape in current model is torch.Size([1, 768]).
+	size mismatch for vil_tri_prediction.weight: copying a param with shape torch.Size([3, 1024]) from checkpoint, the shape in current model is torch.Size([3, 768]).
+	size mismatch for vision_logit.weight: copying a param with shape torch.Size([1, 1024]) from checkpoint, the shape in current model is torch.Size([1, 768]).
+11/24/2021 15:07:39 - WARNING -   	 embed_dim: 768
+11/24/2021 15:07:39 - WARNING -   	 image_resolution: 224
+11/24/2021 15:07:39 - WARNING -   	 vision_layers: (3, 4, 23, 3)
+11/24/2021 15:07:39 - WARNING -   	 vision_width: 64
+11/24/2021 15:07:39 - WARNING -   	 vision_patch_size: None
+11/24/2021 15:07:39 - WARNING -   	 context_length: 77
+11/24/2021 15:07:39 - WARNING -   	 not used vocab_size: 49408
+11/24/2021 15:07:39 - WARNING -   	 transformer_width: 512
+11/24/2021 15:07:39 - WARNING -   	 transformer_heads: 8
+11/24/2021 15:07:39 - WARNING -   	 transformer_layers: 12
+11/24/2021 15:07:39 - WARNING -   		 linear_patch: 2d
+11/24/2021 15:07:39 - WARNING -   	 cut_top_layer: 0
+11/24/2021 15:07:46 - WARNING -   	 sim_header: meanP
+11/24/2021 15:08:01 - INFO -   --------------------
+11/24/2021 15:08:01 - INFO -   Weights from pretrained model not used in CLIP4Clip: 
+   clip.input_resolution
+   clip.context_length
+   clip.vocab_size
+11/24/2021 15:08:02 - INFO -   ***** Running test *****
+11/24/2021 15:08:02 - INFO -     Num examples = 3000
+11/24/2021 15:08:02 - INFO -     Batch size = 32
+11/24/2021 15:08:02 - INFO -     Num steps = 94
+11/24/2021 15:08:02 - INFO -   ***** Running val *****
+11/24/2021 15:08:02 - INFO -     Num examples = 3000
+11/24/2021 15:08:02 - INFO -   multi_sentence:False
+11/24/2021 15:08:05 - INFO -   bid:0/94
+11/24/2021 15:08:05 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:06 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:06 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:09 - INFO -   bid:1/94
+11/24/2021 15:08:09 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:09 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:09 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:12 - INFO -   bid:2/94
+11/24/2021 15:08:12 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:12 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:12 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:15 - INFO -   bid:3/94
+11/24/2021 15:08:15 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:15 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:15 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:19 - INFO -   bid:4/94
+11/24/2021 15:08:19 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:19 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:19 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:21 - INFO -   bid:5/94
+11/24/2021 15:08:21 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:22 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:22 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:24 - INFO -   bid:6/94
+11/24/2021 15:08:24 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:25 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:25 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:27 - INFO -   bid:7/94
+11/24/2021 15:08:27 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:27 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:27 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:30 - INFO -   bid:8/94
+11/24/2021 15:08:30 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:31 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:31 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:34 - INFO -   bid:9/94
+11/24/2021 15:08:34 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:34 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:34 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:37 - INFO -   bid:10/94
+11/24/2021 15:08:37 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:37 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:37 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:40 - INFO -   bid:11/94
+11/24/2021 15:08:40 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:40 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:40 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:44 - INFO -   bid:12/94
+11/24/2021 15:08:44 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:44 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:44 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:47 - INFO -   bid:13/94
+11/24/2021 15:08:47 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:47 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:47 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:51 - INFO -   bid:14/94
+11/24/2021 15:08:51 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:51 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:51 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:53 - INFO -   bid:15/94
+11/24/2021 15:08:53 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:54 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:54 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:56 - INFO -   bid:16/94
+11/24/2021 15:08:56 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:57 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:57 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:08:59 - INFO -   bid:17/94
+11/24/2021 15:08:59 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:08:59 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:08:59 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:02 - INFO -   bid:18/94
+11/24/2021 15:09:02 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:02 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:02 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:04 - INFO -   bid:19/94
+11/24/2021 15:09:04 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:04 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:04 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:07 - INFO -   bid:20/94
+11/24/2021 15:09:07 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:07 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:07 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:10 - INFO -   bid:21/94
+11/24/2021 15:09:10 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:10 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:10 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:12 - INFO -   bid:22/94
+11/24/2021 15:09:12 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:12 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:12 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:15 - INFO -   bid:23/94
+11/24/2021 15:09:15 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:15 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:15 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:17 - INFO -   bid:24/94
+11/24/2021 15:09:17 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:18 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:18 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:20 - INFO -   bid:25/94
+11/24/2021 15:09:20 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:21 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:21 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:23 - INFO -   bid:26/94
+11/24/2021 15:09:23 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:24 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:24 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:27 - INFO -   bid:27/94
+11/24/2021 15:09:27 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:27 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:27 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:29 - INFO -   bid:28/94
+11/24/2021 15:09:29 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:29 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:29 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:32 - INFO -   bid:29/94
+11/24/2021 15:09:32 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:32 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:32 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:35 - INFO -   bid:30/94
+11/24/2021 15:09:35 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:35 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:35 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:38 - INFO -   bid:31/94
+11/24/2021 15:09:38 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:39 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:39 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:42 - INFO -   bid:32/94
+11/24/2021 15:09:42 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:42 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:42 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:45 - INFO -   bid:33/94
+11/24/2021 15:09:45 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:46 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:46 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:49 - INFO -   bid:34/94
+11/24/2021 15:09:49 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:49 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:49 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:51 - INFO -   bid:35/94
+11/24/2021 15:09:51 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:52 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:52 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:54 - INFO -   bid:36/94
+11/24/2021 15:09:54 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:54 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:54 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:09:57 - INFO -   bid:37/94
+11/24/2021 15:09:57 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:09:57 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:09:57 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:00 - INFO -   bid:38/94
+11/24/2021 15:10:00 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:00 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:00 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:03 - INFO -   bid:39/94
+11/24/2021 15:10:03 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:03 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:03 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:05 - INFO -   bid:40/94
+11/24/2021 15:10:05 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:05 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:05 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:07 - INFO -   bid:41/94
+11/24/2021 15:10:07 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:08 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:08 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:10 - INFO -   bid:42/94
+11/24/2021 15:10:10 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:10 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:10 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:12 - INFO -   bid:43/94
+11/24/2021 15:10:12 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:12 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:12 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:15 - INFO -   bid:44/94
+11/24/2021 15:10:15 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:15 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:15 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:17 - INFO -   bid:45/94
+11/24/2021 15:10:17 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:18 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:18 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:20 - INFO -   bid:46/94
+11/24/2021 15:10:20 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:20 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:20 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:23 - INFO -   bid:47/94
+11/24/2021 15:10:23 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:23 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:23 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:26 - INFO -   bid:48/94
+11/24/2021 15:10:26 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:26 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:26 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:29 - INFO -   bid:49/94
+11/24/2021 15:10:29 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:29 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:29 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:32 - INFO -   bid:50/94
+11/24/2021 15:10:32 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:32 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:32 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:34 - INFO -   bid:51/94
+11/24/2021 15:10:34 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:35 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:35 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:37 - INFO -   bid:52/94
+11/24/2021 15:10:37 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:37 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:37 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:40 - INFO -   bid:53/94
+11/24/2021 15:10:40 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:40 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:40 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:42 - INFO -   bid:54/94
+11/24/2021 15:10:42 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:42 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:42 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:45 - INFO -   bid:55/94
+11/24/2021 15:10:45 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:45 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:45 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:48 - INFO -   bid:56/94
+11/24/2021 15:10:48 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:48 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:48 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:50 - INFO -   bid:57/94
+11/24/2021 15:10:50 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:51 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:51 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:53 - INFO -   bid:58/94
+11/24/2021 15:10:53 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:53 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:53 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:56 - INFO -   bid:59/94
+11/24/2021 15:10:56 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:56 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:56 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:10:59 - INFO -   bid:60/94
+11/24/2021 15:10:59 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:10:59 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:10:59 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:01 - INFO -   bid:61/94
+11/24/2021 15:11:01 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:02 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:02 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:05 - INFO -   bid:62/94
+11/24/2021 15:11:05 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:05 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:05 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:08 - INFO -   bid:63/94
+11/24/2021 15:11:08 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:08 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:08 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:11 - INFO -   bid:64/94
+11/24/2021 15:11:11 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:11 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:11 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:13 - INFO -   bid:65/94
+11/24/2021 15:11:13 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:13 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:13 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:16 - INFO -   bid:66/94
+11/24/2021 15:11:16 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:16 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:16 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:19 - INFO -   bid:67/94
+11/24/2021 15:11:19 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:19 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:19 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:22 - INFO -   bid:68/94
+11/24/2021 15:11:22 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:22 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:22 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:25 - INFO -   bid:69/94
+11/24/2021 15:11:25 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:25 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:25 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:27 - INFO -   bid:70/94
+11/24/2021 15:11:27 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:28 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:28 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:30 - INFO -   bid:71/94
+11/24/2021 15:11:30 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:30 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:30 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:33 - INFO -   bid:72/94
+11/24/2021 15:11:33 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:33 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:33 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:36 - INFO -   bid:73/94
+11/24/2021 15:11:36 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:36 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:36 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:39 - INFO -   bid:74/94
+11/24/2021 15:11:39 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:39 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:39 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:43 - INFO -   bid:75/94
+11/24/2021 15:11:43 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:43 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:43 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:46 - INFO -   bid:76/94
+11/24/2021 15:11:46 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:46 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:46 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:49 - INFO -   bid:77/94
+11/24/2021 15:11:49 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:49 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:49 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:51 - INFO -   bid:78/94
+11/24/2021 15:11:51 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:52 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:52 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:54 - INFO -   bid:79/94
+11/24/2021 15:11:54 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:54 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:54 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:11:57 - INFO -   bid:80/94
+11/24/2021 15:11:57 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:11:57 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:11:57 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:12:00 - INFO -   bid:81/94
+11/24/2021 15:12:00 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:12:00 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:12:00 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:12:03 - INFO -   bid:82/94
+11/24/2021 15:12:03 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:12:03 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:12:03 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:12:06 - INFO -   bid:83/94
+11/24/2021 15:12:06 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:12:06 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:12:06 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:12:09 - INFO -   bid:84/94
+11/24/2021 15:12:09 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:12:09 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:12:09 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:12:12 - INFO -   bid:85/94
+11/24/2021 15:12:12 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:12:12 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:12:12 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:12:14 - INFO -   bid:86/94
+11/24/2021 15:12:14 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:12:15 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:12:15 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:12:17 - INFO -   bid:87/94
+11/24/2021 15:12:17 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:12:17 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:12:17 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:12:20 - INFO -   bid:88/94
+11/24/2021 15:12:20 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:12:20 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:12:20 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:12:23 - INFO -   bid:89/94
+11/24/2021 15:12:23 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:12:23 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:12:23 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:12:26 - INFO -   bid:90/94
+11/24/2021 15:12:26 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:12:26 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:12:26 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:12:29 - INFO -   bid:91/94
+11/24/2021 15:12:29 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:12:29 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:12:29 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:12:32 - INFO -   bid:92/94
+11/24/2021 15:12:32 - INFO -   video.shape:torch.Size([32, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:12:33 - INFO -   sequence_output.shape:torch.Size([32, 1, 768])
+11/24/2021 15:12:33 - INFO -   visual_output.shape:torch.Size([32, 24, 768])
+11/24/2021 15:12:35 - INFO -   bid:93/94
+11/24/2021 15:12:35 - INFO -   video.shape:torch.Size([24, 1, 24, 1, 3, 224, 224])
+11/24/2021 15:12:35 - INFO -   sequence_output.shape:torch.Size([24, 1, 768])
+11/24/2021 15:12:35 - INFO -   visual_output.shape:torch.Size([24, 24, 768])
+11/24/2021 15:12:35 - INFO -   n_gpu:1
+11/24/2021 15:12:54 - INFO -   sim matrix size:  (3000, 3000)
+11/24/2021 15:12:56 - INFO -   	 Length-T: 3000, Length-V:3000
+11/24/2021 15:12:56 - INFO -   Text-to-Video:
+11/24/2021 15:12:56 - INFO -   	>>>  R@1: 100.0 - R@5: 100.0 - R@10: 100.0 - Median R: 1.0 - Mean R: 1.0
+11/24/2021 15:12:56 - INFO -   Video-to-Text:
+11/24/2021 15:12:56 - INFO -   	>>>  V2T$R@1: 100.0 - V2T$R@5: 100.0 - V2T$R@10: 100.0 - V2T$Median R: 1.0 - V2T$Mean R: 1.0
+11/24/2021 15:12:56 - INFO -   sim_matrix:[[ 99.31872    30.108992   41.59278   ...  52.0383    -13.798907
+   29.367113 ]
+ [ 28.6565     99.35484   -23.702326  ...  50.503437   19.272867
+   21.527586 ]
+ [ 41.621708  -22.869387   99.201164  ...  40.487743  -24.02343
+   64.932076 ]
+ ...
+ [ 52.35535    52.728516   40.164646  ...  99.26774     1.4403483
+   64.85067  ]
+ [-12.945263   18.120878  -22.092707  ...   3.2916527  99.09309
+   18.744778 ]
+ [ 29.596529   22.423168   64.66669   ...  64.54129    17.318136
+   99.31535  ]]
