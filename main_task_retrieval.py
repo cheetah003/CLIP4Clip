@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from __future__ import print_function
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
 import torch
 from torch.utils.data import (SequentialSampler)
 import numpy as np
@@ -123,8 +123,8 @@ def get_args(description='CLIP4Clip on Retrieval Task'):
     if args.gradient_accumulation_steps < 1:
         raise ValueError("Invalid gradient_accumulation_steps parameter: {}, should be >= 1".format(
             args.gradient_accumulation_steps))
-    if not args.do_train and not args.do_eval:
-        raise ValueError("At least one of `do_train` or `do_eval` must be True.")
+    if not args.do_train and not args.do_eval and not args.do_pretrain:
+        raise ValueError("At least one of `do_train` or `do_eval` or 'do_pretrain' must be True.")
 
     args.batch_size = int(args.batch_size / args.gradient_accumulation_steps)
 
@@ -253,7 +253,8 @@ def dataloader_msrvtt_train(args, tokenizer):
     #                            jsonpath='/home/shenwenxue/data/datasets/bird/all_data.json',
     #                            tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     msrvtt_dataset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/video_asr_lmdb_array',
-                               jsonpath='/home/shenwenxue/data/datasets/bird/train_data_ocr.json',
+                               # jsonpath='/home/shenwenxue/data/datasets/bird/train_data_ocr.json',
+                               jsonpath='/home/shenwenxue/data/datasets/bird/train_data_asr.json',
                                tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     train_sampler = torch.utils.data.distributed.DistributedSampler(msrvtt_dataset)
     dataloader = DataLoader(
@@ -284,7 +285,8 @@ def dataloader_msrvtt_test(args, tokenizer):
     #                            jsonpath='/home/shenwenxue/data/datasets/bird/all_data.json',
     #                            tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/video_asr_lmdb_array',
-                               jsonpath='/home/shenwenxue/data/datasets/bird/val_data_ocr.json',
+                               # jsonpath='/home/shenwenxue/data/datasets/bird/val_data_ocr.json',
+                               jsonpath='/home/shenwenxue/data/datasets/bird/val_data_asr.json',
                                tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     dataloader_msrvtt = DataLoader(
         msrvtt_testset,
@@ -439,11 +441,11 @@ def train_epoch(epoch, args, model, train_dataloader, device, n_gpu, optimizer, 
             batch = tuple(t.to(device=device, non_blocking=True) for t in batch)
         tag_ids, tag_mask, tag_segment, masked_tag, masked_tag_label, \
         video_data, video_mask, title_ids, masked_title, masked_title_label, \
-        ocr_ids, masked_ocr, masked_ocr_label = batch
+        ocr_ids, masked_ocr, masked_ocr_label, asr_ids = batch
 
         loss = model(tag_ids, tag_mask, tag_segment, masked_tag, masked_tag_label, \
                      video_data, video_mask, title_ids, masked_title, masked_title_label, \
-                     ocr_ids, masked_ocr, masked_ocr_label)
+                     ocr_ids, masked_ocr, masked_ocr_label, asr_ids)
 
         if n_gpu > 1:
             loss = loss.mean()  # mean() to average on multi-gpu.
@@ -582,7 +584,7 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
             # input_ids, input_mask, segment_ids, video, video_mask = batch
             tag_ids, tag_mask, tag_segment, masked_tag, masked_tag_label, \
             video, video_mask, title_ids, masked_title, masked_title_label, \
-            ocr_ids, masked_ocr, masked_ocr_label = batch
+            ocr_ids, masked_ocr, masked_ocr_label, asr_ids = batch
 
             logger.info("bid:{}/{}".format(bid, len(test_dataloader)))
             logger.info("video.shape:{}".format(video.shape))
@@ -606,16 +608,19 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
             else:
                 sequence_output, visual_output = model.get_sequence_visual_output(tag_ids, tag_segment, tag_mask,
                                                                                   video, video_mask)
-                co_sequence_output, co_visual_output = model.co_attention_model(sequence_output, visual_output)
-                co_sequence_output = co_sequence_output[:, 0, :]
-                sequence_output = co_sequence_output.view(co_sequence_output.size(0), -1, co_sequence_output.size(-1))
-
-                co_visual_output = co_visual_output.view(co_visual_output.size(0), num_frame, -1, co_visual_output.size(-1))
-                visual_output = co_visual_output[:, :, 0, :]
-                logger.info("sequence_output.shape:{}".format(sequence_output.shape))
-                logger.info("visual_output.shape:{}".format(visual_output.shape))
                 ocr_output = model.get_sequence_output(ocr_ids, tag_segment, tag_mask, shaped=True)
                 title_output = model.get_sequence_output(title_ids, tag_segment, tag_mask, shaped=True)
+                # title_output, visual_output = model.co_attention_model(title_output, visual_output)
+                # co_sequence_output = co_sequence_output[:, 0, :]
+                # co_sequence_output = co_sequence_output.view(co_sequence_output.size(0), -1, co_sequence_output.size(-1))
+                #
+                # co_visual_output = co_visual_output.view(co_visual_output.size(0), num_frame, -1, co_visual_output.size(-1))
+                # co_visual_output = co_visual_output[:, :, 0, :]
+                # visual_output = co_visual_output
+
+                logger.info("sequence_output.shape:{}".format(sequence_output.shape))
+                logger.info("visual_output.shape:{}".format(visual_output.shape))
+
                 # logger.info("sequence_output.shape:{}".format(sequence_output.shape))
                 # logger.info("visual_output.shape:{}".format(visual_output.shape))
                 batch_sequence_output_list.append(sequence_output)
@@ -743,7 +748,7 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
     logger.info(
         '\t>>>  V2T$R@1: {:.1f} - V2T$R@5: {:.1f} - V2T$R@10: {:.1f} - V2T$Median R: {:.1f} - V2T$Mean R: {:.1f}'.
             format(vt_metrics['R1'], vt_metrics['R5'], vt_metrics['R10'], vt_metrics['MR'], vt_metrics['MeanR']))
-    logger.info("sim_matrix:{}".format(sim_matrix))
+    logger.info("sim_matrix:\n{}".format(sim_matrix))
     # logger.info('\tframe>>>  R@1: {:.1f} - R@5: {:.1f} - R@10: {:.1f} - Median R: {:.1f} - Mean R: {:.1f}'.
     #             format(tv_metrics['R1'], tv_metrics['R5'], tv_metrics['R10'], tv_metrics['MR'], tv_metrics['MeanR']))
     # logger.info('\tocr>>>  R@1: {:.1f} - R@5: {:.1f} - R@10: {:.1f} - Median R: {:.1f} - Mean R: {:.1f}'.
@@ -828,7 +833,7 @@ def main():
         logger.info("***** Running val *****")
         logger.info("  Num examples = %d", val_length)
 
-    if args.do_train:
+    if args.do_train or args.do_pretrain:
         train_dataloader, train_length, train_sampler = DATALOADER_DICT[args.datatype]["train"](args, tokenizer)
         num_train_optimization_steps = (int(len(train_dataloader) + args.gradient_accumulation_steps - 1)
                                         / args.gradient_accumulation_steps) * args.epochs

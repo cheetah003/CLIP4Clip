@@ -166,13 +166,17 @@ class BasicLMDB(VisionDataset):
         tag_text = item['tag']
         ocr_text = item['ocr']
         title_text = item['title']
+        asr_text = item['asr']
+        # print("title[{}]:{}".format(index,title_text))
+        # print("video[{}]:{}".format(index, item['video_id']))
         tag_ids, tag_mask, tag_segment, masked_tag, masked_tag_label = self._get_text(tag_text)
         ocr_ids, _, _, masked_ocr, masked_ocr_label = self._get_text(ocr_text)
         title_ids, _, _, masked_title, masked_title_label = self._get_text(title_text)
+        asr_ids, _, _, _, _, = self._get_text(asr_text)
         video_mask = np.ones(self.max_frames, dtype=np.long)
         return tag_ids, tag_mask, tag_segment, masked_tag, masked_tag_label,\
                video_data, video_mask, title_ids, masked_title, masked_title_label, \
-               ocr_ids, masked_ocr, masked_ocr_label
+               ocr_ids, masked_ocr, masked_ocr_label, asr_ids
 
 
     def __len__(self) -> int:

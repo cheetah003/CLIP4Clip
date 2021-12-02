@@ -127,7 +127,7 @@ class Transformer(nn.Module):
         self.resblocks = nn.Sequential(*[ResidualAttentionBlock(width, heads) for _ in range(layers)])
 
     def forward(self, x: torch.Tensor, attn_mask: torch.Tensor):
-        logger.info("x.shpae:{},attn_mask:{}".format(x.shape, attn_mask.shape))
+        # logger.info("x.shpae:{},attn_mask:{}".format(x.shape, attn_mask.shape))
         return self.resblocks((x, attn_mask))[0]
 
 class CrossEmbeddings(nn.Module):
@@ -213,13 +213,17 @@ class CrossModel(PreTrainedModel):
 
         if attention_mask is None:
             attention_mask = torch.ones(concat_input.size(0), concat_input.size(1))
+            attention_mask = attention_mask.cuda()
         if concat_type is None:
             concat_type = torch.zeros_like(attention_mask)
+            concat_type = concat_type.cuda()
 
         extended_attention_mask = self.build_attention_mask(attention_mask)
+        logger.info("extended_attention_mask:{}".format(extended_attention_mask.shape))
 
         embedding_output = self.embeddings(concat_input, concat_type)
         embedding_output = embedding_output.permute(1, 0, 2)  # NLD -> LND
+        logger.info("embedding_output:{}".format(embedding_output.shape))
         embedding_output = self.transformer(embedding_output, extended_attention_mask)
         embedding_output = embedding_output.permute(1, 0, 2)  # LND -> NLD
 

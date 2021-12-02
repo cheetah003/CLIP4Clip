@@ -146,8 +146,8 @@ class AttentionPool2d(nn.Module):
             need_weights=False
         )
         # logger.info("x3.shape:{}".format(x.shape))
-        # return x[0]
-        return x
+        return x[0]
+        # return x
 
 
 class ModifiedResNet(nn.Module):
@@ -452,8 +452,8 @@ class CLIP(nn.Module):
             # logger.info("hidden1.shape:{}".format(hidden.shape))
             hidden = self.visual.ln_post(hidden) @ self.visual.proj
             # logger.info("hidden2.shape:{}".format(hidden.shape))
-            # x = hidden[:, 0, :]
-            x = hidden
+            x = hidden[:, 0, :]
+            # x = hidden
         else:
             hidden = self.visual(image.type(self.dtype))
             x = hidden
