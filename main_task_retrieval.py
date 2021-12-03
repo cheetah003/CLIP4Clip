@@ -4,12 +4,11 @@ from __future__ import unicode_literals
 from __future__ import print_function
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '4,5,6,7'
 import torch
 from torch.utils.data import (SequentialSampler)
 import numpy as np
 import random
-
 
 from metrics import compute_metrics, tensor_text_to_video_metrics, tensor_video_to_text_sim
 import time
@@ -285,7 +284,7 @@ def dataloader_msrvtt_test(args, tokenizer):
     #                            jsonpath='/home/shenwenxue/data/datasets/bird/all_data.json',
     #                            tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     msrvtt_testset = BasicLMDB(root='/home/shenwenxue/data/datasets/bird/video_asr_lmdb_array',
-                               # jsonpath='/home/shenwenxue/data/datasets/bird/val_data_ocr.json',
+                               # jsonpath='/home/shenwenxue/data/datasets/bird/test_data_tag.json',
                                jsonpath='/home/shenwenxue/data/datasets/bird/val_data_asr.json',
                                tokenizer=tokenizer, max_words=args.max_words, max_frames=args.max_frames)
     dataloader_msrvtt = DataLoader(
@@ -439,13 +438,9 @@ def train_epoch(epoch, args, model, train_dataloader, device, n_gpu, optimizer, 
         if n_gpu == 1:
             # multi-gpu does scattering it-self
             batch = tuple(t.to(device=device, non_blocking=True) for t in batch)
-        tag_ids, tag_mask, tag_segment, masked_tag, masked_tag_label, \
-        video_data, video_mask, title_ids, masked_title, masked_title_label, \
-        ocr_ids, masked_ocr, masked_ocr_label, asr_ids = batch
+        video_data, video_mask, tag_ids, tag_mask, tag_segment, title_ids, title_mask, asr_ids, asr_mask = batch
 
-        loss = model(tag_ids, tag_mask, tag_segment, masked_tag, masked_tag_label, \
-                     video_data, video_mask, title_ids, masked_title, masked_title_label, \
-                     ocr_ids, masked_ocr, masked_ocr_label, asr_ids)
+        loss = model(video_data, video_mask, tag_ids, tag_mask, tag_segment, title_ids, title_mask, asr_ids, asr_mask)
 
         if n_gpu > 1:
             loss = loss.mean()  # mean() to average on multi-gpu.
@@ -487,9 +482,8 @@ def train_epoch(epoch, args, model, train_dataloader, device, n_gpu, optimizer, 
 
 
 def _run_on_single_gpu(model, batch_list_t, batch_list_v, batch_sequence_output_list, batch_visual_output_list,
-                       batch_ocr_output_list, batch_title_output_list):
+                       batch_title_output_list):
     sim_matrix = []
-    sim_matrix_ocr = []
     sim_matrix_title = []
     # logger.info("batch_sequence_output_list:{}".format(batch_sequence_output_list))
     # logger.info("batch_visual_output_list:{}".format(batch_visual_output_list))
@@ -499,12 +493,10 @@ def _run_on_single_gpu(model, batch_list_t, batch_list_v, batch_sequence_output_
         input_mask, segment_ids, *_tmp = b1
         sequence_output = batch_sequence_output_list[idx1]
         each_row = []
-        ocr_each_row = []
         title_each_row = []
         for idx2, b2 in enumerate(batch_list_v):
             video_mask, *_tmp = b2
             visual_output = batch_visual_output_list[idx2]
-            ocr_output = batch_ocr_output_list[idx2]
             title_output = batch_title_output_list[idx2]
             # print("visual shape:{},type:{}".format(visual_output.shape,type(visual_output)))
             # print("ocr_output shape:{},type:{}".format(ocr_output.shape,type(ocr_output)))
@@ -512,31 +504,26 @@ def _run_on_single_gpu(model, batch_list_t, batch_list_v, batch_sequence_output_
             # co_visual_output = co_visual_output[:, :, 0, :]
             b1b2_logits, *_tmp = model.get_similarity_logits(sequence_output, visual_output, input_mask, video_mask,
                                                              loose_type=model.loose_type)
-            ocr_logits = model.loose_similarity_for_text(sequence_output, ocr_output)
             title_logits = model.loose_similarity_for_text(sequence_output, title_output)
 
             b1b2_logits = b1b2_logits.cpu().detach().numpy()
-            ocr_logits = ocr_logits.cpu().detach().numpy()
             title_logits = title_logits.cpu().detach().numpy()
 
             each_row.append(b1b2_logits)
-            ocr_each_row.append(ocr_logits)
             title_each_row.append(title_logits)
 
         each_row = np.concatenate(tuple(each_row), axis=-1)
-        ocr_each_row = np.concatenate(tuple(ocr_each_row), axis=-1)
         title_each_row = np.concatenate(tuple(title_each_row), axis=-1)
 
         # sim_matrix.append(preprocessing.scale(each_row, axis=1))
         # sim_matrix_ocr.append(preprocessing.scale(ocr_each_row, axis=1))
         # sim_matrix_title.append(preprocessing.scale(title_each_row, axis=1))
         sim_matrix.append(each_row)
-        sim_matrix_ocr.append(ocr_each_row)
         sim_matrix_title.append(title_each_row)
     # logger.info("sim_matrix:{}".format(sim_matrix))
     # logger.info("sim_matrix_ocr:{}".format(sim_matrix_ocr))
     # logger.info("sim_matrix_title:{}".format(sim_matrix_title))
-    return sim_matrix, sim_matrix_ocr, sim_matrix_title
+    return sim_matrix, sim_matrix_title
 
 
 def eval_epoch(args, model, test_dataloader, device, n_gpu):
@@ -582,9 +569,7 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
         for bid, batch in enumerate(test_dataloader):
             batch = tuple(t.to(device) for t in batch)
             # input_ids, input_mask, segment_ids, video, video_mask = batch
-            tag_ids, tag_mask, tag_segment, masked_tag, masked_tag_label, \
-            video, video_mask, title_ids, masked_title, masked_title_label, \
-            ocr_ids, masked_ocr, masked_ocr_label, asr_ids = batch
+            video, video_mask, tag_ids, tag_mask, tag_segment, title_ids, title_mask, asr_ids, asr_mask = batch
 
             logger.info("bid:{}/{}".format(bid, len(test_dataloader)))
             logger.info("video.shape:{}".format(video.shape))
@@ -608,8 +593,8 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
             else:
                 sequence_output, visual_output = model.get_sequence_visual_output(tag_ids, tag_segment, tag_mask,
                                                                                   video, video_mask)
-                ocr_output = model.get_sequence_output(ocr_ids, tag_segment, tag_mask, shaped=True)
                 title_output = model.get_sequence_output(title_ids, tag_segment, tag_mask, shaped=True)
+                _, visual_output = model.get_cross_output(video_fea=visual_output)
                 # title_output, visual_output = model.co_attention_model(title_output, visual_output)
                 # co_sequence_output = co_sequence_output[:, 0, :]
                 # co_sequence_output = co_sequence_output.view(co_sequence_output.size(0), -1, co_sequence_output.size(-1))
@@ -624,7 +609,6 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
                 # logger.info("sequence_output.shape:{}".format(sequence_output.shape))
                 # logger.info("visual_output.shape:{}".format(visual_output.shape))
                 batch_sequence_output_list.append(sequence_output)
-                batch_ocr_output_list.append(ocr_output)
                 batch_title_output_list.append(title_output)
 
                 batch_list_t.append((tag_mask, tag_segment,))
@@ -651,7 +635,6 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
             batch_list_t_splits = []
             batch_list_v_splits = []
 
-            batch_ocr_output_splits = []
             batch_title_output_splits = []
             batch_t_output_splits = []
             batch_v_output_splits = []
@@ -665,7 +648,6 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
 
                     batch_t_output_splits.append(batch_sequence_output_list[s_:e_])
                     batch_v_output_splits.append(batch_visual_output_list)
-                    batch_ocr_output_splits.append(batch_ocr_output_list)
                     batch_title_output_splits.append(batch_title_output_list)
                 else:
                     devc = torch.device('cuda:{}'.format(str(dev_id)))
@@ -678,22 +660,19 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
                     batch_t_output_splits.append(devc_batch_list)
                     devc_batch_list = [b.to(devc) for b in batch_visual_output_list]
                     batch_v_output_splits.append(devc_batch_list)
-                    devc_batch_list = [b.to(devc) for b in batch_ocr_output_list]
-                    batch_ocr_output_splits.append(devc_batch_list)
                     devc_batch_list = [b.to(devc) for b in batch_title_output_list]
                     batch_title_output_splits.append(devc_batch_list)
 
             parameters_tuple_list = [(batch_list_t_splits[dev_id], batch_list_v_splits[dev_id],
                                       batch_t_output_splits[dev_id], batch_v_output_splits[dev_id],
-                                      batch_ocr_output_splits[dev_id], batch_title_output_splits[dev_id]) for dev_id in device_ids]
+                                      batch_title_output_splits[dev_id]) for dev_id in device_ids]
             parallel_outputs_tuple = parallel_apply(_run_on_single_gpu, model, parameters_tuple_list, device_ids)
             sim_matrix = []
             sim_matrix_ocr = []
             sim_matrix_title = []
             for idx in range(len(parallel_outputs_tuple)):
-                parallel_outputs, parallel_outputs_ocr, parallel_outputs_title = parallel_outputs_tuple[idx]
+                parallel_outputs, parallel_outputs_title = parallel_outputs_tuple[idx]
                 sim_matrix += parallel_outputs
-                sim_matrix_ocr += parallel_outputs_ocr
                 sim_matrix_title += parallel_outputs_title
             sim_matrix = np.concatenate(tuple(sim_matrix), axis=0)
             # sim_matrix_ocr = np.concatenate(tuple(sim_matrix_ocr), axis=0)
@@ -706,10 +685,9 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
         else:
             sim_matrix_tuple = _run_on_single_gpu(model, batch_list_t, batch_list_v,
                                                   batch_sequence_output_list, batch_visual_output_list,
-                                                  batch_ocr_output_list, batch_title_output_list)
-            sim_matrix, sim_matrix_ocr, sim_matrix_title = sim_matrix_tuple
+                                                  batch_title_output_list)
+            sim_matrix, sim_matrix_title = sim_matrix_tuple
             sim_matrix = np.concatenate(tuple(sim_matrix), axis=0)
-            # sim_matrix_ocr = np.concatenate(tuple(sim_matrix_ocr), axis=0)
             # sim_matrix_title = np.concatenate(tuple(sim_matrix_title), axis=0)
             # sim_matrix = sim_matrix + sim_matrix_title
             # sim_matrix = model.weight_sum[0].cpu() * sim_matrix + (1 - model.weight_sum[0].cpu()) * sim_matrix_title
@@ -733,10 +711,8 @@ def eval_epoch(args, model, test_dataloader, device, n_gpu):
         # sim_matrix = get_dual_matrix(sim_matrix)
         tv_metrics = compute_metrics(sim_matrix)
         vt_metrics = compute_metrics(sim_matrix.T)
-        # tv_metrics_ocr = compute_metrics(sim_matrix_ocr)
         # tv_metrics_title = compute_metrics(sim_matrix_title)
         # tv_metrics_all = compute_metrics(sim_matrix_all)
-        # tv_metrics_ocr_frame = compute_metrics(sim_matrix_ocr_frame)
         # tv_metrics_title_frame = compute_metrics(sim_matrix_title_frame)
         # tv_metrics_title_ocr = compute_metrics(sim_matrix_title_ocr)
         logger.info('\t Length-T: {}, Length-V:{}'.format(len(sim_matrix), len(sim_matrix[0])))

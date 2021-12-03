@@ -95,8 +95,6 @@ class BasicLMDB(VisionDataset):
         words = words + [self.SPECIAL_TOKEN["SEP_TOKEN"]]
         input_ids = self.tokenizer.convert_tokens_to_ids(words)
 
-        masked_tokens, token_labels = self._mask_tokens(words)
-        masked_token_ids = self.tokenizer.convert_tokens_to_ids(masked_tokens)
         input_mask = [1] * len(input_ids)
         segment_ids = [0] * len(input_ids)
         while len(input_ids) < self.max_words:
@@ -107,19 +105,11 @@ class BasicLMDB(VisionDataset):
         assert len(input_mask) == self.max_words
         assert len(segment_ids) == self.max_words
 
-        while len(masked_token_ids) < self.max_words:
-            masked_token_ids.append(0)
-            token_labels.append(-1)
-        assert len(masked_token_ids) == self.max_words
-        assert len(token_labels) == self.max_words
-
         pairs_text = np.array(input_ids)
         pairs_mask = np.array(input_mask)
         pairs_segment = np.array(segment_ids)
-        pairs_masked_text = np.array(masked_token_ids)
-        pairs_token_labels = np.array(token_labels)
 
-        return pairs_text, pairs_mask, pairs_segment, pairs_masked_text, pairs_token_labels
+        return pairs_text, pairs_mask, pairs_segment
 
     def __getitem__(self, index: int):
         """
@@ -158,25 +148,19 @@ class BasicLMDB(VisionDataset):
         # print("video:{},shape:{},type:{},dtype:{}".format(sys.getsizeof(video_data), video_data.shape, type(video_data),
         #                                                   video_data.dtype))
         ########### not used ocr ###############
-        # ocr_ids = [0] * self.max_words
-        # ocr_ids = np.array(ocr_ids)
         # title_ids = masked_title = masked_title_label = masked_ocr = masked_ocr_label = ocr_ids
         # query_text = item['title']
         ######################################
         tag_text = item['tag']
-        ocr_text = item['ocr']
         title_text = item['title']
         asr_text = item['asr']
         # print("title[{}]:{}".format(index,title_text))
         # print("video[{}]:{}".format(index, item['video_id']))
-        tag_ids, tag_mask, tag_segment, masked_tag, masked_tag_label = self._get_text(tag_text)
-        ocr_ids, _, _, masked_ocr, masked_ocr_label = self._get_text(ocr_text)
-        title_ids, _, _, masked_title, masked_title_label = self._get_text(title_text)
-        asr_ids, _, _, _, _, = self._get_text(asr_text)
+        tag_ids, tag_mask, tag_segment = self._get_text(tag_text)
+        title_ids, title_mask, _ = self._get_text(title_text)
+        asr_ids, asr_mask, _, = self._get_text(asr_text)
         video_mask = np.ones(self.max_frames, dtype=np.long)
-        return tag_ids, tag_mask, tag_segment, masked_tag, masked_tag_label,\
-               video_data, video_mask, title_ids, masked_title, masked_title_label, \
-               ocr_ids, masked_ocr, masked_ocr_label, asr_ids
+        return video_data, video_mask, tag_ids, tag_mask, tag_segment, title_ids, title_mask, asr_ids, asr_mask
 
 
     def __len__(self) -> int:

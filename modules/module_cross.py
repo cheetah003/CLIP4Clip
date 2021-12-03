@@ -203,7 +203,9 @@ class CrossModel(PreTrainedModel):
         self.apply(self.init_weights)
 
     def build_attention_mask(self, attention_mask):
+        # logger.info("attention_mask:{}".format(attention_mask.shape))
         extended_attention_mask = attention_mask.unsqueeze(1)
+        # logger.info("attention_mask:{}".format(attention_mask.shape))
         extended_attention_mask = extended_attention_mask.to(dtype=self.dtype)  # fp16 compatibility
         extended_attention_mask = (1.0 - extended_attention_mask) * -1000000.0
         extended_attention_mask = extended_attention_mask.expand(-1, attention_mask.size(1), -1)
@@ -219,11 +221,11 @@ class CrossModel(PreTrainedModel):
             concat_type = concat_type.cuda()
 
         extended_attention_mask = self.build_attention_mask(attention_mask)
-        logger.info("extended_attention_mask:{}".format(extended_attention_mask.shape))
+        # logger.info("extended_attention_mask:{}".format(extended_attention_mask.shape))
 
         embedding_output = self.embeddings(concat_input, concat_type)
         embedding_output = embedding_output.permute(1, 0, 2)  # NLD -> LND
-        logger.info("embedding_output:{}".format(embedding_output.shape))
+        # logger.info("embedding_output:{}".format(embedding_output.shape))
         embedding_output = self.transformer(embedding_output, extended_attention_mask)
         embedding_output = embedding_output.permute(1, 0, 2)  # LND -> NLD
 

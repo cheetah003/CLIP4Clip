@@ -278,16 +278,14 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
 
         self.apply(self.init_weights)
 
-    def forward(self, input_ids, input_mask, input_segment, masked_tag, masked_tag_label, \
-                     video_data, video_mask, title_ids=None, masked_title=None, masked_title_label=None, \
-                     ocr_ids=None, masked_ocr=None, masked_ocr_label=None, asr_ids=None):
+    def forward(self, video_data, video_mask, input_ids, input_mask, input_segment,
+                title_ids=None, title_mask=None, asr_ids=None, asr_mask=None):
 
         input_ids = input_ids.view(-1, input_ids.shape[-1])
 
         input_mask = input_mask.view(-1, input_mask.shape[-1])
         input_segment = input_segment.view(-1, input_segment.shape[-1])
         video_mask = video_mask.view(-1, video_mask.shape[-1])
-        ocr_ids = ocr_ids.view(-1, ocr_ids.shape[-1])
         title_ids = title_ids.view(-1, title_ids.shape[-1])
         asr_ids = asr_ids.view(-1, title_ids.shape[-1])
 
@@ -308,13 +306,12 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
                 sequence_output, visual_output = self.get_sequence_visual_output(input_ids, input_mask, input_segment,
                                                                                  video, video_mask, shaped=True,
                                                                                  video_frame=video_frame)
-                ocr_output = self.get_sequence_output(ocr_ids, input_mask, input_segment, shaped=True)
                 title_output = self.get_sequence_output(title_ids, input_mask, input_segment, shaped=True)
                 asr_output = self.get_sequence_output(asr_ids, input_mask, input_segment, shaped=True)
 
                 # co_sequence_output, co_visual_output = self.co_attention_model(sequence_output, visual_output)
                 #for contrasive loss
-                _, pooled_output = self._get_cross_output(video_fea=visual_output)
+                _, pooled_output = self.get_cross_output(video_fea=visual_output)
                 # video-query
                 # sim_matrix, *_tmp = self.get_similarity_logits(sequence_output, pooled_output, input_mask, video_mask,
                 #                                                shaped=True, loose_type=self.loose_type)
@@ -330,13 +327,10 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
                                                              shaped=True, loose_type=self.loose_type)
                 sim_asr_loss = self.loss_fct(sim_video_asr) + self.loss_fct(sim_video_asr.T)
                 loss += sim_asr_loss
-                # video-ocr
-                # sim_video_ocr, *_tmp = self.get_similarity_logits(ocr_output, pooled_output, input_mask, video_mask,
-                #                                                   shaped=True, loose_type=self.loose_type)
-                # sim_ocr_loss = self.loss_fct(sim_video_ocr) + self.loss_fct(sim_video_ocr.T)
-                # loss += sim_ocr_loss
+
+                _, cross_title_output = self.get_cross_output(text_fea=title_output)
                 # title - tag
-                sim_title_tag = self.loose_similarity_for_text(sequence_output, title_output)
+                sim_title_tag = self.loose_similarity_for_text(sequence_output, cross_title_output)
                 sim_title_tag_loss = self.loss_fct(sim_title_tag) + self.loss_fct(sim_title_tag.T)
                 loss += sim_title_tag_loss
 
@@ -353,7 +347,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
                 sequence_output, visual_output = self.get_sequence_visual_output(input_ids, input_mask, input_segment,
                                                                                  video, video_mask, shaped=True,
                                                                                  video_frame=video_frame)
-                _, pooled_output = self._get_cross_output(video_fea=visual_output)
+                _, pooled_output = self.get_cross_output(video_fea=visual_output)
                 sim_matrix, *_tmp = self.get_similarity_logits(sequence_output, pooled_output, input_mask, video_mask,
                                                                shaped=True, loose_type=self.loose_type)
                 sim_loss = self.loss_fct(sim_matrix) + self.loss_fct(sim_matrix.T)
@@ -447,7 +441,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
 
         return sequence_output, visual_output
 
-    def _get_cross_output(self, text_fea=None, video_fea=None):
+    def get_cross_output(self, text_fea=None, video_fea=None):
         assert (text_fea is not None) or (video_fea is not None)
 
         if (text_fea is not None) and (video_fea is not None):
@@ -474,10 +468,10 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
 
         logger.info("concat_features.shape:{}".format(concat_features.shape))
         # logger.info("concat_mask.shape:{}".format(concat_mask.shape))
-        logger.info("concat_type.shape:{}".format(concat_type.shape))
+        # logger.info("concat_type.shape:{}".format(concat_type.shape))
         cross_layers, pooled_output = self.cross(concat_features, concat_type)
-        logger.info("cross_layers.shape:{}".format(cross_layers.shape))
-        logger.info("pooled_output.shape:{}".format(pooled_output.shape))
+        # logger.info("cross_layers.shape:{}".format(cross_layers.shape))
+        # logger.info("pooled_output.shape:{}".format(pooled_output.shape))
 
         return cross_layers, pooled_output
 
@@ -593,7 +587,7 @@ class CLIP4Clip(CLIP4ClipPreTrainedModel):
             logger.info("visual_output_r:{}".format(visual_output_r.shape))
 
             cross_output, pooled_output = \
-                self._get_cross_output(sequence_output_l, visual_output_r, attention_mask_l, video_mask_r)
+                self.get_cross_output(sequence_output_l, visual_output_r, attention_mask_l, video_mask_r)
 
             logger.info("pooled_output:{}".format(pooled_output.shape))
             logger.info("cross_output:{}".format(cross_output.shape))
